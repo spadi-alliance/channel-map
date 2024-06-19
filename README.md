@@ -6,8 +6,7 @@ Channel mapping library between Detector and Readout FEE
 
 ```sh
 cmake -S . -B .build
-cmake --build .build
-cmake --install .build
+cmake --build .build --target install
 ```
 
 ## Uninstall
