@@ -1,9 +1,7 @@
-// -*- C++ -*-
-
 #include <cstdlib>
 #include <iostream>
 
-#include <ChannelMap.hxx>
+#include <channel-map.hh>
 
 enum EArgs {
   kProcess, kInputCSV, kNArgs

@@ -1,15 +1,15 @@
 // -*- C++ -*-
 
-#include "ChannelMap.hxx"
+#include "channel-map.hh"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
-#include "DebugPrint.hxx"
-#include "IndexTuple.hxx"
-#include "StopWatch.hxx"
+#include "debug-print.hh"
+#include "index-tuple.hh"
+#include "stopwatch.hh"
 
 namespace
 {
@@ -63,14 +63,13 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
     //     MapElement::f_int2str_table[number] = str;
     //   }
     // }
-    DEBUG << line << std::endl;
+    // DEBUG << line << std::endl;
   }
 
 }
 
 std::vector<std::string>
 ChannelMap::SplitLine(const std::string& str, char delimiter) {
-  Stopwatch stopwatch;
   std::vector<std::string> tokens;
   std::string token;
   std::istringstream iss(str);

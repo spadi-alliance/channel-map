@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "MapElement.hxx"
+#include "map-element.hh"
 
 namespace cmap
 {

@@ -3,7 +3,7 @@
 
 #include <chrono>
 
-#include "DebugPrint.hxx"
+#include "debug-print.hh"
 
 namespace cmap
 {

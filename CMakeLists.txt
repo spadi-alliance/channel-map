@@ -9,8 +9,8 @@ set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_BUILD_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
-file(GLOB SOURCES "src/*.cxx")
-file(GLOB HEADERS "include/*.hxx")
+file(GLOB SOURCES "src/*.cc")
+file(GLOB HEADERS "include/*.hh")
 
 ### main library
 add_library(ChannelMap SHARED ${SOURCES})
@@ -21,7 +21,7 @@ target_include_directories(ChannelMap PRIVATE)
 add_definitions(-DDEBUG)
 
 ### for test
-add_executable(test_program test.cxx)
+add_executable(test_program test.cc)
 target_compile_features(test_program PRIVATE cxx_std_17)
 target_link_libraries(test_program PRIVATE ChannelMap)
 
