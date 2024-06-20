@@ -18,9 +18,9 @@ int main(int argc, char* argv[])
 
   std::string input_csv(argv[kInputCSV]);
 
-  auto& channel_map = cmap::ChannelMap::getInstance();
-  channel_map.initializeFromCSV(input_csv);
-  channel_map.debugPrint();
+  auto& channel_map = cmap::ChannelMap::GetInstance();
+  channel_map.InitializeFromCSV(input_csv);
+  channel_map.DebugPrint();
 
   return EXIT_SUCCESS;
 }

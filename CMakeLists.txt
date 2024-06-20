@@ -1,5 +1,3 @@
-# CMakeLists.txt
-
 cmake_minimum_required(VERSION 3.10)
 
 project(ChannelMap VERSION 1.0)
@@ -20,7 +18,7 @@ target_include_directories(ChannelMap PUBLIC include)
 target_include_directories(ChannelMap PRIVATE)
 
 ### for debug
-# add_definitions(-DDEBUG)
+add_definitions(-DDEBUG)
 
 ### for test
 add_executable(test_program test.cxx)

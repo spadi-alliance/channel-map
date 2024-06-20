@@ -7,10 +7,19 @@
 #include <sstream>
 #include <vector>
 
+#include "DebugPrint.hxx"
+#include "IndexTuple.hxx"
+#include "StopWatch.hxx"
+
+namespace
+{
+}
+
 namespace cmap
 {
-
 ChannelMap::ChannelMap()
+  : headers_(),
+    types_()
 {
 }
 
@@ -19,13 +28,15 @@ ChannelMap::~ChannelMap()
 }
 
 void
-ChannelMap::debugPrint()
+ChannelMap::DebugPrint()
 {
 }
 
 void
-ChannelMap::initializeFromCSV(const std::string& filepath)
+ChannelMap::InitializeFromCSV(const std::string& filepath)
 {
+  Stopwatch stopwatch;
+
   std::ifstream file(filepath);
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << filepath << std::endl;
@@ -33,14 +44,13 @@ ChannelMap::initializeFromCSV(const std::string& filepath)
   }
 
   std::string line;
-  while (std::getline(file, line)) {
-    std::stringstream ss(line);
-    std::string token;
 
-    std::vector<std::string> tokens;
-    while (std::getline(ss, token, ',')) {
-      tokens.push_back(token);
-    }
+  if (std::getline(file, line)) {
+    headers_ = SplitLine(line);
+  }
+
+  while (std::getline(file, line)) {
+    std::vector<std::string> tokens = SplitLine(line);
 
     // if (tokens.size() >= 2) {
     //   elnum_t number = std::stoul(tokens[0]);
@@ -53,11 +63,22 @@ ChannelMap::initializeFromCSV(const std::string& filepath)
     //     MapElement::f_int2str_table[number] = str;
     //   }
     // }
-#ifdef DEBUG
-    std::cout << line << std::endl;
-#endif
+    DEBUG << line << std::endl;
   }
 
+}
+
+std::vector<std::string>
+ChannelMap::SplitLine(const std::string& str, char delimiter) {
+  Stopwatch stopwatch;
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream iss(str);
+  while (std::getline(iss, token, delimiter)) {
+    DEBUG << "Token: " << token << std::endl;
+    tokens.push_back(token);
+  }
+  return tokens;
 }
 
 }
