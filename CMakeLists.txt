@@ -19,6 +19,9 @@ add_library(ChannelMap SHARED ${SOURCES})
 target_include_directories(ChannelMap PUBLIC include)
 target_include_directories(ChannelMap PRIVATE)
 
+### for debug
+# add_definitions(-DDEBUG)
+
 ### for test
 add_executable(test_program test.cxx)
 target_compile_features(test_program PRIVATE cxx_std_17)

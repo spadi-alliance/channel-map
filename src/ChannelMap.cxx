@@ -53,6 +53,9 @@ ChannelMap::initializeFromCSV(const std::string& filepath)
     //     MapElement::f_int2str_table[number] = str;
     //   }
     // }
+#ifdef DEBUG
+    std::cout << line << std::endl;
+#endif
   }
 
 }
