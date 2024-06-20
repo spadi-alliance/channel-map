@@ -11,10 +11,6 @@
 #include "index-tuple.hh"
 #include "stopwatch.hh"
 
-namespace
-{
-}
-
 namespace cmap
 {
 ChannelMap::ChannelMap()
@@ -39,19 +35,26 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
 
   std::ifstream file(filepath);
   if (!file.is_open()) {
-    std::cerr << "Error opening file: " << filepath << std::endl;
-    return;
+    std::cerr << "ERROR file open fail : " << filepath << std::endl;
+    std::exit(1);
   }
 
   std::string line;
 
   if (std::getline(file, line)) {
     headers_ = SplitLine(line);
+    for (const auto& h : headers_){
+      types_.push_back(SplitLine(h, '.')[0]);
+    }
   }
 
   while (std::getline(file, line)) {
-    std::vector<std::string> tokens = SplitLine(line);
-
+    auto tokens = SplitLine(line);
+    std::string type;
+    // std::unorderd_map<>;
+    for (int i=0, n=tokens.size(); i<n; ++i) {
+      DEBUG << types_[i] << "-" << headers_[i] << " : " << tokens[i] << std::endl;
+    }
     // if (tokens.size() >= 2) {
     //   elnum_t number = std::stoul(tokens[0]);
     //   std::string str = tokens[1];
@@ -74,7 +77,7 @@ ChannelMap::SplitLine(const std::string& str, char delimiter) {
   std::string token;
   std::istringstream iss(str);
   while (std::getline(iss, token, delimiter)) {
-    DEBUG << "Token: " << token << std::endl;
+    // DEBUG << "Token: " << token << std::endl;
     tokens.push_back(token);
   }
   return tokens;

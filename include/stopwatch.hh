@@ -11,9 +11,9 @@ class Stopwatch {
 public:
   using clock = std::chrono::high_resolution_clock;
   using time_point = std::chrono::time_point<clock>;
-  using nanoseconds = std::chrono::nanoseconds;
-  using milliseconds = std::chrono::milliseconds;
-  using seconds = std::chrono::seconds;
+  // using nanoseconds = std::chrono::nanoseconds;
+  // using milliseconds = std::chrono::milliseconds;
+  // using seconds = std::chrono::seconds;
 
   Stopwatch() : running(false) {
 #ifdef DEBUG
@@ -40,11 +40,12 @@ public:
     }
   }
 
-  template<typename Duration=nanoseconds>
+  template<typename Duration=std::chrono::nanoseconds>
   double Elapsed() const {
     auto end = running ? clock::now() : end_time;
     auto elapsed = std::chrono::duration_cast<Duration>(end - start_time).count();
-    DEBUG << elapsed << std::endl;
+    DEBUG << elapsed // << " / " << Duration::period::den
+          << std::endl;
     return elapsed;
   }
 
