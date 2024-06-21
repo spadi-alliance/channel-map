@@ -59,8 +59,7 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
 const IndexTuple*
 ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
   for (const auto& t : m_unique_types) {
-    DEBUG << t << " " << std::string(80, '=') << std::endl;
-    IndexTuple tuple;
+    IndexTuple tuple(t);
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_types[i] != t) continue;
       bool is_digit = false;
