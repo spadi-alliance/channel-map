@@ -2,6 +2,7 @@
 #define CHANNELMAP_MAPELEMENT_H_
 
 #include <map>
+#include <variant>
 #include <vector>
 #include <string>
 #include <string_view>
@@ -9,26 +10,42 @@
 
 namespace cmap
 {
-using MapElementNumberType = uint32_t;
-using elnum_t = MapElementNumberType;
+using element_t = std::variant<uint64_t, std::string>;
 
-class MapElement {
-public:
-  MapElement(elnum_t number);
-  MapElement(std::string_view str);
-  operator elnum_t() const;
-  operator std::string() const;
+inline std::ostream&
+operator <<(std::ostream& ost, const element_t& var) {
+  std::visit([&ost](const auto& value) {
+    ost << value;
+  }, var);
+  return ost;
+}
 
-  elnum_t get_number(std::string_view str_view);
-  const std::string& get_str(elnum_t number) const;
+// class MapElement {
+// public:
+//   MapElement(number_t number) : m_number(number) {}
+//   MapElement(std::string_view str) : m_number(ToNumber(str)) {}
+//   operator number_t() const { return m_number; }
+//   operator std::string() const { return ToString(m_number); }
 
-protected:
-  elnum_t f_number;
-  static std::map<std::string, elnum_t> f_str2int_table;
-  static std::vector<std::string> f_int2str_table;
-  static std::string f_null_str;
-  static std::mutex f_mutex;
-};
+//   number_t ToNumber(std::string_view str_view) {
+//     std::string str(str_view);
+//     auto iter = m_str2int_table.find(str);
+//     if (iter == m_str2int_table.end()) {
+//       m_str2int_table[str] = m_int2str_table.size();
+//       m_int2str_table.push_back(str);
+//       return m_int2str_table.size()-1;
+//     }
+//     return iter->second;
+//   }
+//   const std::string& ToString(number_t number) const;
+
+// protected:
+//   number_t m_number;
+//   static std::map<std::string, number_t> m_str2int_table;
+//   static std::vector<std::string> m_int2str_table;
+//   static std::string m_null_str;
+// };
+
 }
 
 #endif

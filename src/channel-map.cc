@@ -14,8 +14,8 @@
 namespace cmap
 {
 ChannelMap::ChannelMap()
-  : headers_(),
-    types_()
+  : m_header(),
+    m_types()
 {
 }
 
@@ -40,35 +40,50 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
   }
 
   std::string line;
-
   if (std::getline(file, line)) {
-    headers_ = SplitLine(line);
-    for (const auto& h : headers_){
-      types_.push_back(SplitLine(h, '.')[0]);
+    int i = 0;
+    for (const auto& h : SplitLine(line)){
+      m_header.push_back(h);
+      auto type = SplitLine(h, '.')[0];
+      m_types.push_back(type);
+      m_unique_types.insert(type);
     }
   }
 
   while (std::getline(file, line)) {
     auto tokens = SplitLine(line);
-    std::string type;
-    // std::unorderd_map<>;
-    for (int i=0, n=tokens.size(); i<n; ++i) {
-      DEBUG << types_[i] << "-" << headers_[i] << " : " << tokens[i] << std::endl;
-    }
-    // if (tokens.size() >= 2) {
-    //   elnum_t number = std::stoul(tokens[0]);
-    //   std::string str = tokens[1];
-    //   MapElement element(number);
-    //   {
-    //     // std::lock_guard<std::mutex> lock(manager_mutex);
-    //     elements[number] = element;
-    //     MapElement::f_str2int_table[str] = number;
-    //     MapElement::f_int2str_table[number] = str;
-    //   }
-    // }
-    // DEBUG << line << std::endl;
+    const auto& tuple = MakeTuple(tokens);
   }
+}
 
+const IndexTuple*
+ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
+  for (const auto& t : m_unique_types) {
+    DEBUG << t << " " << std::string(80, '=') << std::endl;
+    IndexTuple tuple;
+    for (int i=0, n=tokens.size(); i<n; ++i) {
+      if (m_types[i] != t) continue;
+      bool is_digit = false;
+      try {
+        std::size_t pos;
+        std::stoull(tokens[i], &pos);
+        is_digit = (pos == tokens[i].length());
+      } catch (const std::invalid_argument&) {
+        is_digit = false;
+      // } catch (const std::out_of_range&) {
+      //   is_digit = false;
+      }
+      element_t element;
+      if (is_digit)
+        element = std::stoull(tokens[i]);
+      else
+        element = tokens[i];
+      tuple[m_header[i]] = element;
+      // DEBUG << m_types[i] << "-" << m_header[i] << " : " << tokens[i] << " " << element << " (" << is_digit << ")" << std::endl;
+    }
+    DEBUG << tuple << std::endl;
+  }
+  return nullptr;
 }
 
 std::vector<std::string>

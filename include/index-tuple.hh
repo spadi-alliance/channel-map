@@ -7,11 +7,11 @@
 
 namespace cmap
 {
-class IndexTuple: protected std::map<std::string, MapElement> {
+class IndexTuple: protected std::map<std::string, element_t> {
   public:
-    template<typename... Args> IndexTuple(Args... args) {
-        this->load(args...);
-    }
+    // template<typename... Args> IndexTuple(Args... args) {
+    //     this->load(args...);
+    // }
     // hash_type hash() const { write your hash function here .... }
   protected:
     // template<typename Head, typename... Tail> void
@@ -21,12 +21,21 @@ class IndexTuple: protected std::map<std::string, MapElement> {
     // }
     void load() {}
   public:
-    using std::map<std::string, MapElement>::begin;
-    using std::map<std::string, MapElement>::end;
-    using std::map<std::string, MapElement>::size;
-    using std::map<std::string, MapElement>::empty;
-    using std::map<std::string, MapElement>::operator[];
+    using std::map<std::string, element_t>::begin;
+    using std::map<std::string, element_t>::end;
+    using std::map<std::string, element_t>::size;
+    using std::map<std::string, element_t>::empty;
+    using std::map<std::string, element_t>::operator[];
 };
+
+inline std::ostream&
+operator <<(std::ostream& ost, const IndexTuple& tup) {
+  ost << "| ";
+  for (const auto& e : tup) {
+    ost << e.first << " " << e.second << " | ";
+  }
+  return ost;
+}
 
 }
 
