@@ -9,6 +9,7 @@
 #include <string_view>
 
 namespace cmap {
+
 using number_t = uint64_t;
 using element_t = std::variant<number_t, std::string>;
 
