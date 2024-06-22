@@ -5,8 +5,7 @@
 
 #include "debug-print.hh"
 
-namespace cmap
-{
+namespace cmap {
 class Stopwatch {
 public:
   using clock = std::chrono::high_resolution_clock;

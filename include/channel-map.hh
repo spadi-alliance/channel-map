@@ -3,15 +3,13 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-// #include "MapElement.hxx"
+#include "index-tuple.hh"
 
-namespace cmap
-{
-class IndexTuple;
-
+namespace cmap {
 class ChannelMap {
 public:
   static ChannelMap& GetInstance();
@@ -25,7 +23,7 @@ private:
   ChannelMap(const ChannelMap&) = delete;
   ChannelMap& operator=(const ChannelMap&) = delete;
 
-  const IndexTuple*
+  void
   MakeTuple(const std::vector<std::string>& tokens);
   std::vector<std::string>
   SplitLine(const std::string& str, char delimiter=',');
@@ -34,7 +32,8 @@ private:
   std::vector<std::string> m_header;
   std::vector<std::string> m_types;
   std::unordered_set<std::string> m_unique_types;
-  std::vector<std::vector<const IndexTuple*>> channel_map_;
+  std::unordered_map<IndexTuple, IndexTuple> m_fe2det_map;
+  std::unordered_map<IndexTuple, IndexTuple> m_det2fe_map;
 };
 
 inline ChannelMap&

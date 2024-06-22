@@ -1,16 +1,16 @@
 #ifndef CHANNELMAP_MAPELEMENT_H_
 #define CHANNELMAP_MAPELEMENT_H_
 
+#include <iostream>
 #include <map>
 #include <variant>
 #include <vector>
 #include <string>
 #include <string_view>
-#include <mutex>
 
-namespace cmap
-{
-using element_t = std::variant<uint64_t, std::string>;
+namespace cmap {
+using number_t = uint64_t;
+using element_t = std::variant<number_t, std::string>;
 
 inline std::ostream&
 operator <<(std::ostream& ost, const element_t& var) {

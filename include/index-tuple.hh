@@ -5,15 +5,14 @@
 
 #include "map-element.hh"
 
-namespace cmap
-{
+namespace cmap {
 class IndexTuple: protected std::map<std::string, element_t> {
 public:
-  IndexTuple(std::string_view type) : m_type(type) {}
+  IndexTuple() = default;
   // template<typename... Args> IndexTuple(Args... args) {
   //     this->load(args...);
   // }
-  // hash_type hash() const { write your hash function here .... }
+  void Type(const std::string& str) { m_type = str; }
   const std::string& Type() const { return m_type; }
   using std::map<std::string, element_t>::begin;
   using std::map<std::string, element_t>::end;
@@ -42,6 +41,20 @@ operator <<(std::ostream& ost, const IndexTuple& tup) {
   }
   return ost;
 }
+
+}
+
+namespace std {
+template<>
+struct hash<cmap::IndexTuple> {
+  std::size_t operator()(const cmap::IndexTuple& t) const {
+    std::size_t h = 0;
+    for (const auto& p : t) {
+      h ^= std::hash<cmap::element_t>()(p.second);
+    }
+    return h;
+  }
+};
 
 }
 

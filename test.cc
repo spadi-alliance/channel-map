@@ -7,9 +7,8 @@ enum EArgs {
   kProcess, kInputCSV, kNArgs
 };
 
-int main(int argc, char* argv[])
-{
-  if(argc < kNArgs){
+int main(int argc, char* argv[]) {
+  if (argc < kNArgs) {
     std::cout << "Usage: " << argv[kProcess] << " [InputCSV]" << std::endl;
     return EXIT_SUCCESS;
   }

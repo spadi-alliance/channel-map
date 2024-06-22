@@ -15,7 +15,10 @@ namespace cmap
 {
 ChannelMap::ChannelMap()
   : m_header(),
-    m_types()
+    m_types(),
+    m_unique_types(),
+    m_fe2det_map(),
+    m_det2fe_map()
 {
 }
 
@@ -52,37 +55,41 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
 
   while (std::getline(file, line)) {
     auto tokens = SplitLine(line);
-    const auto& tuple = MakeTuple(tokens);
+    MakeTuple(tokens);
   }
 }
 
-const IndexTuple*
+void
 ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
   for (const auto& t : m_unique_types) {
-    IndexTuple tuple(t);
+    IndexTuple tuple;
+    tuple.Type(t);
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_types[i] != t) continue;
-      bool is_digit = false;
+      bool is_number = false;
       try {
         std::size_t pos;
         std::stoull(tokens[i], &pos);
-        is_digit = (pos == tokens[i].length());
+        is_number = (pos == tokens[i].length());
       } catch (const std::invalid_argument&) {
-        is_digit = false;
-      // } catch (const std::out_of_range&) {
-      //   is_digit = false;
+        is_number = false;
+      } catch (const std::out_of_range&) {
+        is_number = false;
       }
       element_t element;
-      if (is_digit)
+      if (is_number) {
         element = std::stoull(tokens[i]);
-      else
+      } else {
         element = tokens[i];
+      }
+      // DEBUG << i << " " << m_header[i] << " " << tokens[i]
+      //       << " " << (is_number ? "(number)" : "(string)")
+      //       << std::endl;
+      // DEBUG << m_header[i] << " " << element << std::endl;
       tuple[m_header[i]] = element;
-      // DEBUG << m_types[i] << "-" << m_header[i] << " : " << tokens[i] << " " << element << " (" << is_digit << ")" << std::endl;
     }
     DEBUG << tuple << std::endl;
   }
-  return nullptr;
 }
 
 std::vector<std::string>
