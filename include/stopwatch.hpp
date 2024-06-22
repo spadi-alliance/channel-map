@@ -3,7 +3,7 @@
 
 #include <chrono>
 
-#include "debug-print.hh"
+#include "debug-print.hpp"
 
 namespace cmap {
 class Stopwatch {

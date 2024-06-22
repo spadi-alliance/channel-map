@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "map-element.hh"
+#include "map-element.hpp"
 
 namespace cmap {
 class IndexTuple: protected std::map<std::string, element_t> {

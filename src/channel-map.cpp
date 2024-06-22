@@ -1,15 +1,13 @@
-// -*- C++ -*-
-
-#include "channel-map.hh"
+#include "channel-map.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
-#include "debug-print.hh"
-#include "index-tuple.hh"
-#include "stopwatch.hh"
+#include "debug-print.hpp"
+#include "index-tuple.hpp"
+#include "stopwatch.hpp"
 
 namespace cmap
 {

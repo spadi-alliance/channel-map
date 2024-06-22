@@ -9,8 +9,8 @@ set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_BUILD_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
-file(GLOB SOURCES "src/*.cc")
-file(GLOB HEADERS "include/*.hh")
+file(GLOB SOURCES "src/*.cpp")
+file(GLOB HEADERS "include/*.hpp")
 
 ### main library
 add_library(ChannelMap SHARED ${SOURCES})
@@ -20,12 +20,12 @@ target_include_directories(ChannelMap PRIVATE)
 ### for debug
 add_definitions(-DDEBUG)
 
-### for test
-add_executable(test_program test.cc)
-target_compile_features(test_program PRIVATE cxx_std_20)
-target_link_libraries(test_program PRIVATE ChannelMap)
+### for skeleton
+add_executable(skeleton_program skeleton.cpp)
+target_compile_features(skeleton_program PRIVATE cxx_std_20)
+target_link_libraries(skeleton_program PRIVATE ChannelMap)
 
 ### install
-install(TARGETS test_program DESTINATION bin)
+install(TARGETS skeleton_program DESTINATION bin)
 install(TARGETS ChannelMap DESTINATION lib)
 install(FILES ${HEADERS} DESTINATION include)

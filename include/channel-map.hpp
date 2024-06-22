@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "index-tuple.hh"
+#include "index-tuple.hpp"
 
 namespace cmap {
 class ChannelMap {

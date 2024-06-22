@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <channel-map.hh>
+#include <channel-map.hpp>
 
 enum EArgs {
   kProcess, kInputCSV, kNArgs
