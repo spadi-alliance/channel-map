@@ -30,12 +30,7 @@ ChannelMap::DebugPrint()
 {
   Stopwatch stopwatch;
 
-  for (const auto& ts : m_tuple_set) {
-    INFO << std::string(100, '=') << std::endl;
-    for (const auto& t : ts) {
-      INFO << t << std::endl;
-    }
-  }
+  IndexTuple a;
 }
 
 void
@@ -77,10 +72,11 @@ ChannelMap::InitializeFromCSV(const std::string& filepath)
 
 void
 ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
-  std::vector<IndexTuple> tuples;
+  // std::vector<IndexTuple> tuples;
+  std::map<std::string, IndexTuple> tuples;
   for (const auto& t : m_unique_types) {
     IndexTuple tuple;
-    tuple.Type(t);
+    // tuple.Type(t);
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_types[i] != t) continue;
       bool is_number = false;
@@ -106,12 +102,13 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
       tuple[m_header[i]] = element;
     }
     INFO << tuple << std::endl;
-    tuples.push_back(tuple);
+    // tuples.push_back(tuple);
+    tuples[t] = tuple;
   }
 
-  m_tuple_set.insert(tuples);
-  // m_fe2det_map[tuples["fe"]] = tuples["detector"];
-  // m_det2fe_map[tuples["fe"]] = tuples["detector"];
+  // m_tuple_set.insert(tuples);
+  m_fe2det_map[tuples["fe"]] = tuples["detector"];
+  m_det2fe_map[tuples["detector"]] = tuples["fe"];
 }
 
 std::vector<std::string>

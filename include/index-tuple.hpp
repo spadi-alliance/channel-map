@@ -10,18 +10,29 @@ namespace cmap {
 class IndexTuple: public std::map<std::string, element_t> {
 public:
   IndexTuple() = default;
-  const std::string& Type(const std::string& str) {
-    m_type = str; return m_type;
-  }
-  const std::string& Type() const { return m_type; }
+  // template<typename... Args> IndexTuple(Args... args) {
+  //   this->load(args...);
+  // }
+
+  // const std::string& Type(const std::string& str) {
+  //   m_type = str; return m_type;
+  // }
+  // const std::string& Type() const { return m_type; }
+
+protected:
+  // template<typename Head, typename... Tail> void load(Head&& head, Tail&&... tail) {
+  //   this->emplace_back(head);
+  //   this->load(std::forward<Tail>(tail)...);
+  // }
+
 
 private:
-  std::string m_type;
+  // std::string m_type;
 };
 
 inline std::ostream&
 operator <<(std::ostream& ost, const IndexTuple& tup) {
-  ost << "[" << tup.Type() << "] ";
+  // ost << "[" << tup.Type() << "] ";
   for (const auto& e : tup) {
     ost << e.first << " " << e.second;
     if (std::holds_alternative<number_t>(e.second)) {
