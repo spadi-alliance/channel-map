@@ -7,12 +7,12 @@
 
 namespace cmap {
 
-class IndexTuple: public std::map<std::string, element_t> {
+class IndexTuple: public std::vector<element_t> {
 public:
   IndexTuple() = default;
-  // template<typename... Args> IndexTuple(Args... args) {
-  //   this->load(args...);
-  // }
+  template<typename... Args> IndexTuple(Args... args) {
+    this->load(args...);
+  }
 
   // const std::string& Type(const std::string& str) {
   //   m_type = str; return m_type;
@@ -20,11 +20,11 @@ public:
   // const std::string& Type() const { return m_type; }
 
 protected:
-  // template<typename Head, typename... Tail> void load(Head&& head, Tail&&... tail) {
-  //   this->emplace_back(head);
-  //   this->load(std::forward<Tail>(tail)...);
-  // }
-
+  template<typename Head, typename... Tail> void load(Head&& head, Tail&&... tail) {
+    this->emplace_back(head);
+    this->load(std::forward<Tail>(tail)...);
+  }
+  void load() {}
 
 private:
   // std::string m_type;
@@ -34,8 +34,8 @@ inline std::ostream&
 operator <<(std::ostream& ost, const IndexTuple& tup) {
   // ost << "[" << tup.Type() << "] ";
   for (const auto& e : tup) {
-    ost << e.first << " " << e.second;
-    if (std::holds_alternative<number_t>(e.second)) {
+    ost << e;
+    if (std::holds_alternative<number_t>(e)) {
       ost << "(number) | ";
     } else {
       ost << "(string) | ";
@@ -52,8 +52,8 @@ template<>
 struct hash<cmap::IndexTuple> {
   std::size_t operator()(const cmap::IndexTuple& t) const {
     std::size_t h = 0;
-    for (const auto& p : t) {
-      h ^= std::hash<cmap::element_t>()(p.second);
+    for (const auto& e : t) {
+      h ^= std::hash<cmap::element_t>()(e);
     }
     return h;
   }

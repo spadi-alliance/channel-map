@@ -15,6 +15,7 @@ namespace cmap {
 ChannelMap::ChannelMap()
   : m_header(),
     m_types(),
+    m_null_tuple(),
     m_unique_types(),
     m_fe2det_map(),
     m_det2fe_map()
@@ -30,7 +31,34 @@ ChannelMap::DebugPrint()
 {
   Stopwatch stopwatch;
 
-  IndexTuple a;
+  IndexTuple det(170, 30, 0, 262, 0);
+  const auto& fe = Det2Fe(det);
+  DEBUG << "det : " << det
+        << "-> fe : " << fe << std::endl;
+}
+
+const IndexTuple&
+ChannelMap::Det2Fe(const IndexTuple& det) const
+{
+  auto itr = m_det2fe_map.find(det);
+  if (itr != m_det2fe_map.end()) {
+    return itr->second;
+  } else {
+    DEBUG << "Key " << det << " not found" << std::endl;
+    return m_null_tuple;
+  }
+}
+
+const IndexTuple&
+ChannelMap::Fe2Det(const IndexTuple& fe) const
+{
+  auto itr = m_fe2det_map.find(fe);
+  if (itr != m_fe2det_map.end()) {
+    return itr->second;
+  } else {
+    DEBUG << "Key " << fe << " not found" << std::endl;
+    return m_null_tuple;
+  }
 }
 
 void
@@ -99,9 +127,10 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
       //       << " " << (is_number ? "(number)" : "(string)")
       //       << std::endl;
       // DEBUG << m_header[i] << " " << element << std::endl;
-      tuple[m_header[i]] = element;
+      // tuple[m_header[i]] = element;
+      tuple.push_back(element);
     }
-    INFO << tuple << std::endl;
+    DEBUG << tuple << std::endl;
     // tuples.push_back(tuple);
     tuples[t] = tuple;
   }
