@@ -29,12 +29,21 @@ ChannelMap::~ChannelMap()
 void
 ChannelMap::DebugPrint()
 {
-  Stopwatch stopwatch;
+  {
+    Stopwatch stopwatch;
+    IndexTuple det(170, 30, 0, 262, 0);
+    const auto& fe = Det2Fe(det);
+    DEBUG << "det : " << det
+          << "-> fe : " << fe << std::endl;
+  }
 
-  IndexTuple det(170, 30, 0, 262, 0);
-  const auto& fe = Det2Fe(det);
-  DEBUG << "det : " << det
-        << "-> fe : " << fe << std::endl;
+  {
+    Stopwatch stopwatch;
+    IndexTuple fe(30, 270, 0);
+    const auto& det = Fe2Det(fe);
+    DEBUG << "fe : " << fe
+          << "-> det : " << det << std::endl;
+  }
 }
 
 const IndexTuple&
@@ -62,13 +71,13 @@ ChannelMap::Fe2Det(const IndexTuple& fe) const
 }
 
 void
-ChannelMap::InitializeFromCSV(const std::string& filepath)
+ChannelMap::InitializeFromCSV(const std::string& file_path)
 {
   Stopwatch stopwatch;
 
-  std::ifstream file(filepath);
+  std::ifstream file(file_path);
   if (!file.is_open()) {
-    std::cerr << "ERROR file open fail : " << filepath << std::endl;
+    std::cerr << "ERROR file open fail : " << file_path << std::endl;
     std::exit(1);
   }
 

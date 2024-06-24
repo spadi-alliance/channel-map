@@ -2,6 +2,7 @@
 #define CHANNELMAP_DEBUGPRINT_H_
 
 #include <iostream>
+#include <fstream>
 
 #ifdef DEBUG
 #undef DEBUG

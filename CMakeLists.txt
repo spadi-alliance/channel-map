@@ -18,7 +18,7 @@ target_include_directories(ChannelMap PUBLIC include)
 target_include_directories(ChannelMap PRIVATE)
 
 ### for debug
-add_definitions(-DDEBUG)
+# add_definitions(-DDEBUG)
 
 ### for skeleton
 add_executable(skeleton_program skeleton.cpp)
