@@ -33,10 +33,9 @@ private:
 
   // std::mutex mutex_;
   std::vector<std::string> m_header;
-  std::vector<std::string> m_types;
-  IndexTuple m_null_tuple;
+  std::vector<std::string> m_element_type;
+  const IndexTuple m_null_tuple;
   std::unordered_set<std::string> m_unique_types;
-  // std::unordered_set<std::vector<IndexTuple>> m_tuple_set;
   std::unordered_map<IndexTuple, IndexTuple> m_fe2det_map;
   std::unordered_map<IndexTuple, IndexTuple> m_det2fe_map;
 };

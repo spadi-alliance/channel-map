@@ -14,7 +14,7 @@ namespace cmap {
 
 ChannelMap::ChannelMap()
   : m_header(),
-    m_types(),
+    m_element_type(),
     m_null_tuple(),
     m_unique_types(),
     m_fe2det_map(),
@@ -53,7 +53,7 @@ ChannelMap::Det2Fe(const IndexTuple& det) const
   if (itr != m_det2fe_map.end()) {
     return itr->second;
   } else {
-    WARNING << "Key " << det << " not found" << std::endl;
+    WARNING << "key not found : " << det << std::endl;
     return m_null_tuple;
   }
 }
@@ -65,7 +65,7 @@ ChannelMap::Fe2Det(const IndexTuple& fe) const
   if (itr != m_fe2det_map.end()) {
     return itr->second;
   } else {
-    WARNING << "Key " << fe << " not found" << std::endl;
+    WARNING << "key not found : " << fe << std::endl;
     return m_null_tuple;
   }
 }
@@ -90,7 +90,7 @@ ChannelMap::InitializeFromCSV(const std::string& file_path)
       }
       m_header.push_back(h);
       auto type = SplitLine(h, '.')[0];
-      m_types.push_back(type);
+      m_element_type.push_back(type);
       m_unique_types.insert(type);
     }
   }
@@ -113,7 +113,7 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
   for (const auto& t : m_unique_types) {
     IndexTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
-      if (m_types[i] != t) continue;
+      if (m_element_type[i] != t) continue;
       bool is_number = false;
       try {
         std::size_t pos;
@@ -131,6 +131,7 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
         element = tokens[i];
       }
       tuple.push_back(element);
+      tuple.SetTitle(m_header[i]);
     }
     tuples[t] = tuple;
   }

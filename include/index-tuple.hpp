@@ -11,15 +11,27 @@ class IndexTuple: public std::vector<element_t> {
 public:
   IndexTuple() = default;
   template<typename... Args> IndexTuple(Args... args) {
-    this->load(args...);
+    this->SetElement(args...);
+  }
+  void SetTitle(const std::string& t) { m_types.push_back(t); }
+  const std::string& Title(std::size_t i) const {
+    if (i < m_types.size()) {
+      return m_types[i];
+    } else {
+      static std::string null_str;
+      return null_str;
+    }
   }
 
 protected:
-  template<typename Head, typename... Tail> void load(Head&& head, Tail&&... tail) {
+  template<typename Head, typename... Tail>
+    void SetElement(Head&& head, Tail&&... tail) {
     this->emplace_back(head);
-    this->load(std::forward<Tail>(tail)...);
+    this->SetElement(std::forward<Tail>(tail)...);
   }
-  void load() {}
+  void SetElement() {}
+
+  std::vector<std::string> m_types;
 };
 
 }
@@ -27,9 +39,9 @@ protected:
 inline std::ostream&
 operator <<(std::ostream& ost, const cmap::IndexTuple& tup) {
   ost << "| ";
-  for (const auto& e : tup) {
-    ost << e;
-    if (std::holds_alternative<cmap::number_t>(e)) {
+  for (int i=0, n=tup.size(); i<n; ++i) {
+    ost << tup.Title(i) << " " << tup[i];
+    if (std::holds_alternative<cmap::number_t>(tup[i])) {
       ost << "(number) | ";
     } else {
       ost << "(string) | ";
