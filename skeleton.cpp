@@ -1,8 +1,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <channel-map.hpp>
-#include <index-tuple.hpp>
+#include <channel_map.hpp>
+#include <index_tuple.hpp>
 #include <stopwatch.hpp>
 
 enum EArgs {
@@ -17,9 +17,9 @@ int main(int argc, char* argv[]) {
 
   std::string input_csv(argv[kInputCSV]);
 
-  auto& channel_map = cmap::ChannelMap::GetInstance();
-  channel_map.InitializeFromCSV(input_csv);
-  channel_map.DebugPrint();
+  auto& channel_map = cmap::ChannelMap::get_instance();
+  channel_map.initialize(input_csv);
+  channel_map.debug_print();
 
   /*
     usage example
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   if (input_csv == "test.csv") {
     {
       cmap::IndexTuple det(170, 30, 0, 262, 0);
-      const auto& fe = channel_map.Det2Fe(det);
+      const auto& fe = channel_map.det_to_fe(det);
       std::cout << "det = " << det << std::endl
                 << "-> fe = " << fe << std::endl;
 
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
      */
     {
       cmap::IndexTuple det(0, 1, 2, 3);
-      const auto& fe = channel_map.Det2Fe(det);
+      const auto& fe = channel_map.det_to_fe(det);
       std::cout << "fe = " << fe << std::endl;
     }
   }

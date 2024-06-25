@@ -1,4 +1,4 @@
-#include "channel-map.hpp"
+#include "channel_map.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -6,8 +6,8 @@
 #include <sstream>
 #include <vector>
 
-#include "debug-print.hpp"
-#include "index-tuple.hpp"
+#include "debug_print.hpp"
+#include "index_tuple.hpp"
 #include "stopwatch.hpp"
 
 namespace cmap {
@@ -22,21 +22,16 @@ ChannelMap::ChannelMap()
 {
 }
 
-ChannelMap::~ChannelMap()
-{
-}
-
 void
-ChannelMap::DebugPrint()
-{
+ChannelMap::debug_print() {
   for (const auto& p : m_fe2det_map) {
-    // DEBUG << p << std::endl;
+    DEBUG << p.first << " " << p.second << std::endl;
   }
 
   {
     Stopwatch stopwatch;
     IndexTuple det(170, 30, 0, 262, 0);
-    const auto& fe = Det2Fe(det);
+    const auto& fe = det_to_fe(det);
     DEBUG << "det : " << det
           << "-> fe : " << fe << std::endl;
   }
@@ -44,15 +39,14 @@ ChannelMap::DebugPrint()
   {
     Stopwatch stopwatch;
     IndexTuple fe(30, 270, 0);
-    const auto& det = Fe2Det(fe);
+    const auto& det = fe_to_det(fe);
     DEBUG << "fe : " << fe
           << "-> det : " << det << std::endl;
   }
 }
 
 const IndexTuple&
-ChannelMap::Det2Fe(const IndexTuple& det) const
-{
+ChannelMap::det_to_fe(const IndexTuple& det) const {
   auto itr = m_det2fe_map.find(det);
   if (itr != m_det2fe_map.end()) {
     return itr->second;
@@ -63,8 +57,7 @@ ChannelMap::Det2Fe(const IndexTuple& det) const
 }
 
 const IndexTuple&
-ChannelMap::Fe2Det(const IndexTuple& fe) const
-{
+ChannelMap::fe_to_det(const IndexTuple& fe) const {
   auto itr = m_fe2det_map.find(fe);
   if (itr != m_fe2det_map.end()) {
     return itr->second;
@@ -75,8 +68,16 @@ ChannelMap::Fe2Det(const IndexTuple& fe) const
 }
 
 void
-ChannelMap::InitializeFromCSV(const std::string& file_path)
-{
+ChannelMap::initialize(const std::filesystem::path& file_path) {
+  if (file_path.extension() == ".csv") {
+    initialize_from_csv(file_path.string());
+  } else {
+    ERROR << "anything other than 'csv' is currently unsupported" << std::endl;
+  }
+}
+
+void
+ChannelMap::initialize_from_csv(const std::string& file_path) {
   Stopwatch stopwatch;
 
   std::ifstream file(file_path);
@@ -88,38 +89,38 @@ ChannelMap::InitializeFromCSV(const std::string& file_path)
   std::string line;
   if (std::getline(file, line)) {
     int i = 0;
-    for (const auto& h : SplitLine(line)){
+    for (const auto& h : split_line(line)){
       if (std::count(m_header.begin(), m_header.end(), h) > 0) {
         ERROR << "found duplicate header : " << h << std::endl;
       }
       m_header.push_back(h);
-      auto type = SplitLine(h, '.')[0];
+      auto type = split_line(h, '.')[0];
       m_element_type.push_back(type);
       m_unique_types.insert(type);
     }
   }
 
   while (std::getline(file, line)) {
-    auto tokens = SplitLine(line);
+    auto tokens = split_line(line);
     if (tokens.size() != m_header.size()) {
       ERROR << "column size = " << tokens.size()
             << " does not match header size = " << m_header.size()
             << ", skip this line : " << line << std::endl;
       continue;
     }
-    MakeTuple(tokens);
+    make_tuple(tokens);
   }
 }
 
 void
-ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
+ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
   std::map<std::string, IndexTuple> tuples;
   for (const auto& t : m_unique_types) {
     IndexTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_element_type[i] != t) continue;
       tuple.push_back(parse_element(tokens[i]));
-      tuple.SetTitle(m_header[i]);
+      tuple.set_title(m_header[i]);
     }
     tuples[t] = tuple;
     DEBUG << tuple << std::endl;
@@ -129,7 +130,7 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
 }
 
 std::vector<std::string>
-ChannelMap::SplitLine(const std::string& str, char delimiter) {
+ChannelMap::split_line(const std::string& str, char delimiter) {
   std::vector<std::string> tokens;
   std::string token;
   std::istringstream iss(str);

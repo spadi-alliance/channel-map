@@ -3,7 +3,7 @@
 
 #include <chrono>
 
-#include "debug-print.hpp"
+#include "debug_print.hpp"
 
 namespace cmap {
 
@@ -15,40 +15,40 @@ public:
   // using milliseconds = std::chrono::milliseconds;
   // using seconds = std::chrono::seconds;
 
-  Stopwatch() : running(false) {
-    Start();
+  Stopwatch() : m_running(false), m_start_time(), m_stop_time() {
+    start();
   }
 
   ~Stopwatch() {
-    Stop();
+    stop();
   }
 
-  void Start() {
-    start_time = clock::now();
-    running = true;
+  void start() {
+    m_start_time = clock::now();
+    m_running = true;
   }
 
-  void Stop() {
-    if (running) {
-      end_time = clock::now();
-      running = false;
-      Elapsed();
+  void stop() {
+    if (m_running) {
+      m_stop_time = clock::now();
+      m_running = false;
+      elapsed();
     }
   }
 
   template<typename Duration=std::chrono::nanoseconds>
-  double Elapsed() const {
-    auto end = running ? clock::now() : end_time;
-    auto elapsed = std::chrono::duration_cast<Duration>(end - start_time).count();
+  double elapsed() const {
+    auto duration = (m_running ? clock::now() : m_stop_time) - m_start_time;
+    auto elapsed = std::chrono::duration_cast<Duration>(duration).count();
     DEBUG << elapsed // << " / " << Duration::period::den
           << std::endl;
     return elapsed;
   }
 
 private:
-  time_point start_time;
-  time_point end_time;
-  bool running;
+  bool m_running;
+  time_point m_start_time;
+  time_point m_stop_time;
 };
 
 }

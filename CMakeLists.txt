@@ -23,7 +23,7 @@ target_include_directories(ChannelMap PRIVATE)
 ### for skeleton
 add_executable(skeleton_program skeleton.cpp)
 target_compile_features(skeleton_program PRIVATE cxx_std_17)
-target_link_libraries(skeleton_program PRIVATE ChannelMap)
+target_link_libraries(skeleton_program PRIVATE ChannelMap stdc++fs)
 
 ### install
 install(TARGETS skeleton_program DESTINATION bin)

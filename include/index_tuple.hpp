@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "map-element.hpp"
+#include "map_element.hpp"
 
 namespace cmap {
 
@@ -11,10 +11,10 @@ class IndexTuple: public std::vector<element_t> {
 public:
   IndexTuple() = default;
   template<typename... Args> IndexTuple(Args... args) {
-    this->SetElement(args...);
+    this->set_element(args...);
   }
-  void SetTitle(const std::string& t) { m_types.push_back(t); }
-  const std::string& Title(std::size_t i) const {
+  void set_title(const std::string& t) { m_types.push_back(t); }
+  const std::string& title(std::size_t i) const {
     if (i < m_types.size()) {
       return m_types[i];
     } else {
@@ -25,11 +25,11 @@ public:
 
 protected:
   template<typename Head, typename... Tail>
-    void SetElement(Head&& head, Tail&&... tail) {
+    void set_element(Head&& head, Tail&&... tail) {
     this->emplace_back(head);
-    this->SetElement(std::forward<Tail>(tail)...);
+    this->set_element(std::forward<Tail>(tail)...);
   }
-  void SetElement() {}
+  void set_element() {}
 
   std::vector<std::string> m_types;
 };
@@ -40,7 +40,7 @@ inline std::ostream&
 operator <<(std::ostream& ost, const cmap::IndexTuple& tup) {
   ost << "| ";
   for (int i=0, n=tup.size(); i<n; ++i) {
-    ost << tup.Title(i) << " " << tup[i];
+    ost << tup.title(i) << " " << tup[i];
     if (std::holds_alternative<cmap::number_t>(tup[i])) {
       ost << "(number) | ";
     } else {

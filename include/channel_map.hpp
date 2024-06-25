@@ -1,25 +1,27 @@
 #ifndef CHANNELMAP_CHANNELMAP_H_
 #define CHANNELMAP_CHANNELMAP_H_
 
+#include <filesystem>
 #include <map>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include "index-tuple.hpp"
+#include "index_tuple.hpp"
 
 namespace cmap {
 
 class ChannelMap {
 public:
-  static ChannelMap& GetInstance();
-  ~ChannelMap();
+  static ChannelMap& get_instance();
+  ~ChannelMap() {}
 
-  void DebugPrint();
-  void InitializeFromCSV(const std::string& file_path);
-  const IndexTuple& Det2Fe(const IndexTuple& fe) const;
-  const IndexTuple& Fe2Det(const IndexTuple& det) const;
+  void debug_print();
+  void initialize(const std::filesystem::path& file_path);
+  void initialize_from_csv(const std::string& file_path);
+  const IndexTuple& det_to_fe(const IndexTuple& fe) const;
+  const IndexTuple& fe_to_det(const IndexTuple& det) const;
 
 private:
   ChannelMap();
@@ -27,9 +29,9 @@ private:
   ChannelMap& operator=(const ChannelMap&) = delete;
 
   void
-  MakeTuple(const std::vector<std::string>& tokens);
+  make_tuple(const std::vector<std::string>& tokens);
   std::vector<std::string>
-  SplitLine(const std::string& str, char delimiter=',');
+  split_line(const std::string& str, char delimiter=',');
 
   // std::mutex mutex_;
   const IndexTuple m_null_tuple;
@@ -41,7 +43,7 @@ private:
 };
 
 inline ChannelMap&
-ChannelMap::GetInstance()
+ChannelMap::get_instance()
 {
   static ChannelMap instance;
   return instance;
