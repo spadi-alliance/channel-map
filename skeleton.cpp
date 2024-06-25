@@ -74,10 +74,10 @@ int main(int argc, char* argv[]) {
     }
 
     /*
-      missing key
+      If the key is missing, a null tuple is returned.
      */
     {
-      cmap::IndexTuple det(170, 30, 0, 262, 10, 100, 123);
+      cmap::IndexTuple det(0, 1, 2, 3);
       const auto& fe = channel_map.Det2Fe(det);
       std::cout << "fe = " << fe << std::endl;
     }

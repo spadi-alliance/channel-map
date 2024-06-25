@@ -13,9 +13,9 @@
 namespace cmap {
 
 ChannelMap::ChannelMap()
-  : m_header(),
+  : m_null_tuple(),
+    m_header(),
     m_element_type(),
-    m_null_tuple(),
     m_unique_types(),
     m_fe2det_map(),
     m_det2fe_map()
@@ -29,6 +29,10 @@ ChannelMap::~ChannelMap()
 void
 ChannelMap::DebugPrint()
 {
+  for (const auto& p : m_fe2det_map) {
+    // DEBUG << p << std::endl;
+  }
+
   {
     Stopwatch stopwatch;
     IndexTuple det(170, 30, 0, 262, 0);
@@ -114,26 +118,11 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
     IndexTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_element_type[i] != t) continue;
-      bool is_number = false;
-      try {
-        std::size_t pos;
-        std::stoull(tokens[i], &pos);
-        is_number = (pos == tokens[i].length());
-      } catch (const std::invalid_argument&) {
-        is_number = false;
-      } catch (const std::out_of_range&) {
-        is_number = false;
-      }
-      element_t element;
-      if (is_number) {
-        element = std::stoull(tokens[i]);
-      } else {
-        element = tokens[i];
-      }
-      tuple.push_back(element);
+      tuple.push_back(parse_element(tokens[i]));
       tuple.SetTitle(m_header[i]);
     }
     tuples[t] = tuple;
+    DEBUG << tuple << std::endl;
   }
   m_fe2det_map[tuples["fe"]] = tuples["detector"];
   m_det2fe_map[tuples["detector"]] = tuples["fe"];

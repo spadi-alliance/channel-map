@@ -4,12 +4,16 @@
 #include <iostream>
 #include <fstream>
 
+namespace cmap {
+std::ofstream devnull("/dev/null");
+}
+
 #ifdef DEBUG
 #undef DEBUG
 #define DEBUG std::cout << "DEBUG   " << __PRETTY_FUNCTION__ \
   << " L" << __LINE__ << "\n      "
 #else
-#define DEBUG std::ofstream("/dev/null")
+#define DEBUG cmap::devnull
 #endif
 
 #define INFO std::cout << "\033[0;34m" << "INFO    " << "\033[0m"
