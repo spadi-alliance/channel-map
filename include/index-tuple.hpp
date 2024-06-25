@@ -14,36 +14,28 @@ public:
     this->load(args...);
   }
 
-  // const std::string& Type(const std::string& str) {
-  //   m_type = str; return m_type;
-  // }
-  // const std::string& Type() const { return m_type; }
-
 protected:
   template<typename Head, typename... Tail> void load(Head&& head, Tail&&... tail) {
     this->emplace_back(head);
     this->load(std::forward<Tail>(tail)...);
   }
   void load() {}
-
-private:
-  // std::string m_type;
 };
 
+}
+
 inline std::ostream&
-operator <<(std::ostream& ost, const IndexTuple& tup) {
-  // ost << "[" << tup.Type() << "] ";
+operator <<(std::ostream& ost, const cmap::IndexTuple& tup) {
+  ost << "| ";
   for (const auto& e : tup) {
     ost << e;
-    if (std::holds_alternative<number_t>(e)) {
+    if (std::holds_alternative<cmap::number_t>(e)) {
       ost << "(number) | ";
     } else {
       ost << "(string) | ";
     }
   }
   return ost;
-}
-
 }
 
 namespace std {

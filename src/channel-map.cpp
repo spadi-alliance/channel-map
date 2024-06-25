@@ -53,7 +53,7 @@ ChannelMap::Det2Fe(const IndexTuple& det) const
   if (itr != m_det2fe_map.end()) {
     return itr->second;
   } else {
-    DEBUG << "Key " << det << " not found" << std::endl;
+    WARNING << "Key " << det << " not found" << std::endl;
     return m_null_tuple;
   }
 }
@@ -65,7 +65,7 @@ ChannelMap::Fe2Det(const IndexTuple& fe) const
   if (itr != m_fe2det_map.end()) {
     return itr->second;
   } else {
-    DEBUG << "Key " << fe << " not found" << std::endl;
+    WARNING << "Key " << fe << " not found" << std::endl;
     return m_null_tuple;
   }
 }
@@ -109,11 +109,9 @@ ChannelMap::InitializeFromCSV(const std::string& file_path)
 
 void
 ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
-  // std::vector<IndexTuple> tuples;
   std::map<std::string, IndexTuple> tuples;
   for (const auto& t : m_unique_types) {
     IndexTuple tuple;
-    // tuple.Type(t);
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_types[i] != t) continue;
       bool is_number = false;
@@ -132,19 +130,10 @@ ChannelMap::MakeTuple(const std::vector<std::string>& tokens) {
       } else {
         element = tokens[i];
       }
-      // DEBUG << i << " " << m_header[i] << " " << tokens[i]
-      //       << " " << (is_number ? "(number)" : "(string)")
-      //       << std::endl;
-      // DEBUG << m_header[i] << " " << element << std::endl;
-      // tuple[m_header[i]] = element;
       tuple.push_back(element);
     }
-    DEBUG << tuple << std::endl;
-    // tuples.push_back(tuple);
     tuples[t] = tuple;
   }
-
-  // m_tuple_set.insert(tuples);
   m_fe2det_map[tuples["fe"]] = tuples["detector"];
   m_det2fe_map[tuples["detector"]] = tuples["fe"];
 }
@@ -155,7 +144,6 @@ ChannelMap::SplitLine(const std::string& str, char delimiter) {
   std::string token;
   std::istringstream iss(str);
   while (std::getline(iss, token, delimiter)) {
-    // DEBUG << "Token: " << token << std::endl;
     tokens.push_back(token);
   }
   return tokens;

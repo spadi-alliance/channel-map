@@ -16,15 +16,11 @@ public:
   // using seconds = std::chrono::seconds;
 
   Stopwatch() : running(false) {
-#ifdef DEBUG
     Start();
-#endif
   }
 
   ~Stopwatch() {
-#ifdef DEBUG
     Stop();
-#endif
   }
 
   void Start() {

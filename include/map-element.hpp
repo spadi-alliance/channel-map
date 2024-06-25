@@ -13,8 +13,10 @@ namespace cmap {
 using number_t = uint64_t;
 using element_t = std::variant<number_t, std::string>;
 
+}
+
 inline std::ostream&
-operator <<(std::ostream& ost, const element_t& var) {
+operator <<(std::ostream& ost, const cmap::element_t& var) {
   std::visit([&ost](const auto& value) {
     ost << value;
   }, var);
@@ -46,7 +48,5 @@ operator <<(std::ostream& ost, const element_t& var) {
 //   static std::vector<std::string> m_int2str_table;
 //   static std::string m_null_str;
 // };
-
-}
 
 #endif
