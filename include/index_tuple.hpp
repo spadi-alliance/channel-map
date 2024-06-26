@@ -52,12 +52,18 @@ operator <<(std::ostream& ost, const cmap::IndexTuple& tup) {
 
 namespace std {
 
+/*
+  follows the boost::hash_combined method
+ */
+
 template<>
 struct hash<cmap::IndexTuple> {
   std::size_t operator()(const cmap::IndexTuple& t) const {
     std::size_t h = 0;
+    const std::size_t golden_ratio = 0x9e3779b97f4a7c15LLU;
     for (const auto& e : t) {
-      h ^= std::hash<cmap::element_t>()(e);
+      h ^= std::hash<cmap::element_t>()(e)
+        + golden_ratio + (h << 12) + (h >> 4);
     }
     return h;
   }
@@ -67,8 +73,10 @@ template<>
 struct hash<std::vector<cmap::IndexTuple>> {
   std::size_t operator()(const std::vector<cmap::IndexTuple>& v) const {
     std::size_t h = 0;
+    const std::size_t golden_ratio = 0x9e3779b97f4a7c15LLU;
     for (const auto& t : v) {
-      h ^= std::hash<cmap::IndexTuple>()(t);
+      h ^= std::hash<cmap::IndexTuple>()(t)
+        + golden_ratio + (h << 12) + (h >> 4);
     }
     return h;
   }
