@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "debug_print.hpp"
-#include "index_tuple.hpp"
+#include "channel_tuple.hpp"
 #include "stopwatch.hpp"
 
 namespace cmap {
@@ -30,7 +30,7 @@ ChannelMap::debug_print() {
 
   {
     Stopwatch stopwatch;
-    IndexTuple det(170, 30, 0, 262, 0);
+    ChannelTuple det(170, 30, 0, 262, 0);
     const auto& fe = det_to_fe(det);
     DEBUG << "det : " << det
           << "-> fe : " << fe << std::endl;
@@ -38,15 +38,15 @@ ChannelMap::debug_print() {
 
   {
     Stopwatch stopwatch;
-    IndexTuple fe(30, 270, 0);
+    ChannelTuple fe(30, 270, 0);
     const auto& det = fe_to_det(fe);
     DEBUG << "fe : " << fe
           << "-> det : " << det << std::endl;
   }
 }
 
-const IndexTuple&
-ChannelMap::det_to_fe(const IndexTuple& det) const {
+const ChannelTuple&
+ChannelMap::det_to_fe(const ChannelTuple& det) const {
   auto itr = m_det2fe_map.find(det);
   if (itr != m_det2fe_map.end()) {
     return itr->second;
@@ -56,8 +56,8 @@ ChannelMap::det_to_fe(const IndexTuple& det) const {
   }
 }
 
-const IndexTuple&
-ChannelMap::fe_to_det(const IndexTuple& fe) const {
+const ChannelTuple&
+ChannelMap::fe_to_det(const ChannelTuple& fe) const {
   auto itr = m_fe2det_map.find(fe);
   if (itr != m_fe2det_map.end()) {
     return itr->second;
@@ -114,9 +114,9 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
 
 void
 ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
-  std::map<std::string, IndexTuple> tuples;
+  std::map<std::string, ChannelTuple> tuples;
   for (const auto& t : m_unique_types) {
-    IndexTuple tuple;
+    ChannelTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_element_type[i] != t) continue;
       tuple.push_back(parse_element(tokens[i]));

@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <channel_map.hpp>
-#include <index_tuple.hpp>
+#include <channel_tuple.hpp>
 #include <stopwatch.hpp>
 
 enum EArgs {
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   */
   if (input_csv == "test.csv") {
     {
-      cmap::IndexTuple det(170, 30, 0, 262, 0);
+      cmap::ChannelTuple det(170, 30, 0, 262, 0);
       const auto& fe = channel_map.det_to_fe(det);
       std::cout << "det = " << det << std::endl
                 << "-> fe = " << fe << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
       If the key is missing, a null tuple is returned.
      */
     {
-      cmap::IndexTuple det(0, 1, 2, 3);
+      cmap::ChannelTuple det(0, 1, 2, 3);
       const auto& fe = channel_map.det_to_fe(det);
       std::cout << "fe = " << fe << std::endl;
     }

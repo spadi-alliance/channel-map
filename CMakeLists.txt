@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ChannelMap VERSION 1.0)
+project(channel-map VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,19 +13,19 @@ file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "include/*.hpp")
 
 ### main library
-add_library(ChannelMap SHARED ${SOURCES})
-target_include_directories(ChannelMap PUBLIC include)
-target_include_directories(ChannelMap PRIVATE)
+add_library(channel-map SHARED ${SOURCES})
+target_include_directories(channel-map PUBLIC include)
+target_include_directories(channel-map PRIVATE)
 
 ### for debug
 # add_definitions(-DDEBUG)
 
 ### for skeleton
-add_executable(skeleton_program skeleton.cpp)
-target_compile_features(skeleton_program PRIVATE cxx_std_17)
-target_link_libraries(skeleton_program PRIVATE ChannelMap stdc++fs)
+add_executable(skeleton-program skeleton.cpp)
+target_compile_features(skeleton-program PRIVATE cxx_std_17)
+target_link_libraries(skeleton-program PRIVATE channel-map stdc++fs)
 
 ### install
-install(TARGETS skeleton_program DESTINATION bin)
-install(TARGETS ChannelMap DESTINATION lib)
+install(TARGETS skeleton-program DESTINATION bin)
+install(TARGETS channel-map DESTINATION lib)
 install(FILES ${HEADERS} DESTINATION include)

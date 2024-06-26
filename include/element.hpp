@@ -1,5 +1,5 @@
-#ifndef CHANNELMAP_MAPELEMENT_H_
-#define CHANNELMAP_MAPELEMENT_H_
+#ifndef CHANNELMAP_ELEMENT_H_
+#define CHANNELMAP_ELEMENT_H_
 
 #include <charconv>
 #include <fstream>

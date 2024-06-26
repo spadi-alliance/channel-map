@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "index_tuple.hpp"
+#include "channel_tuple.hpp"
 
 namespace cmap {
 
@@ -20,26 +20,25 @@ public:
   void debug_print();
   void initialize(const std::filesystem::path& file_path);
   void initialize_from_csv(const std::string& file_path);
-  const IndexTuple& det_to_fe(const IndexTuple& fe) const;
-  const IndexTuple& fe_to_det(const IndexTuple& det) const;
+  const ChannelTuple& det_to_fe(const ChannelTuple& fe) const;
+  const ChannelTuple& fe_to_det(const ChannelTuple& det) const;
 
 private:
   ChannelMap();
   ChannelMap(const ChannelMap&) = delete;
-  ChannelMap& operator=(const ChannelMap&) = delete;
+  ChannelMap& operator =(const ChannelMap&) = delete;
 
-  void
-  make_tuple(const std::vector<std::string>& tokens);
+  void make_tuple(const std::vector<std::string>& tokens);
   std::vector<std::string>
   split_line(const std::string& str, char delimiter=',');
 
   // std::mutex mutex_;
-  const IndexTuple m_null_tuple;
+  const ChannelTuple m_null_tuple;
   std::vector<std::string> m_header;
   std::vector<std::string> m_element_type;
   std::unordered_set<std::string> m_unique_types;
-  std::unordered_map<IndexTuple, IndexTuple> m_fe2det_map;
-  std::unordered_map<IndexTuple, IndexTuple> m_det2fe_map;
+  std::unordered_map<ChannelTuple, ChannelTuple> m_fe2det_map;
+  std::unordered_map<ChannelTuple, ChannelTuple> m_det2fe_map;
 };
 
 inline ChannelMap&
