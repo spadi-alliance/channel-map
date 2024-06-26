@@ -17,10 +17,13 @@ add_library(channel-map SHARED ${SOURCES})
 target_include_directories(channel-map PUBLIC include)
 target_include_directories(channel-map PRIVATE)
 
-### for debug
+### script
+set(SCRIPT_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/script/channel-map-config)
+
+### debug
 # add_definitions(-DDEBUG)
 
-### for skeleton
+### skeleton
 add_executable(skeleton-program skeleton.cpp)
 target_compile_features(skeleton-program PRIVATE cxx_std_17)
 target_link_libraries(skeleton-program PRIVATE channel-map stdc++fs)
@@ -29,3 +32,6 @@ target_link_libraries(skeleton-program PRIVATE channel-map stdc++fs)
 install(TARGETS skeleton-program DESTINATION bin)
 install(TARGETS channel-map DESTINATION lib)
 install(FILES ${HEADERS} DESTINATION include)
+install(FILES ${SCRIPT_SOURCE} DESTINATION bin
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
