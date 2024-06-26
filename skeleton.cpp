@@ -19,7 +19,6 @@ int main(int argc, char* argv[]) {
 
   auto& channel_map = cmap::ChannelMap::get_instance();
   channel_map.initialize(input_csv);
-  channel_map.debug_print();
 
   /*
     usage example
@@ -27,7 +26,7 @@ int main(int argc, char* argv[]) {
   if (input_csv == "test.csv") {
     {
       cmap::ChannelTuple det(170, 30, 0, 262, 0);
-      const auto& fe = channel_map.det_to_fe(det);
+      const auto& fe = channel_map.get("fe", det);
       std::cout << "det = " << det << std::endl
                 << "-> fe = " << fe << std::endl;
 
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
      */
     {
       cmap::ChannelTuple det(0, 1, 2, 3);
-      const auto& fe = channel_map.det_to_fe(det);
+      const auto& fe = channel_map.get("fe", det);
       std::cout << "fe = " << fe << std::endl;
     }
   }

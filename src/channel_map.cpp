@@ -13,58 +13,12 @@
 namespace cmap {
 
 ChannelMap::ChannelMap()
-  : m_null_tuple(),
-    m_header(),
+  : m_header(),
     m_element_type(),
     m_unique_types(),
-    m_fe2det_map(),
-    m_det2fe_map()
+    m_a2b_map(),
+    m_b2a_map()
 {
-}
-
-void
-ChannelMap::debug_print() {
-  for (const auto& p : m_fe2det_map) {
-    DEBUG << p.first << " " << p.second << std::endl;
-  }
-
-  {
-    Stopwatch stopwatch;
-    ChannelTuple det(170, 30, 0, 262, 0);
-    const auto& fe = det_to_fe(det);
-    DEBUG << "det : " << det
-          << "-> fe : " << fe << std::endl;
-  }
-
-  {
-    Stopwatch stopwatch;
-    ChannelTuple fe(30, 270, 0);
-    const auto& det = fe_to_det(fe);
-    DEBUG << "fe : " << fe
-          << "-> det : " << det << std::endl;
-  }
-}
-
-const ChannelTuple&
-ChannelMap::det_to_fe(const ChannelTuple& det) const {
-  auto itr = m_det2fe_map.find(det);
-  if (itr != m_det2fe_map.end()) {
-    return itr->second;
-  } else {
-    WARNING << "key not found : " << det << std::endl;
-    return m_null_tuple;
-  }
-}
-
-const ChannelTuple&
-ChannelMap::fe_to_det(const ChannelTuple& fe) const {
-  auto itr = m_fe2det_map.find(fe);
-  if (itr != m_fe2det_map.end()) {
-    return itr->second;
-  } else {
-    WARNING << "key not found : " << fe << std::endl;
-    return m_null_tuple;
-  }
 }
 
 void
@@ -96,7 +50,14 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
       m_header.push_back(h);
       auto type = split_line(h, '.')[0];
       m_element_type.push_back(type);
-      m_unique_types.insert(type);
+      if (std::find(m_unique_types.begin(), m_unique_types.end(), type)
+          == m_unique_types.end()) {
+        m_unique_types.push_back(type);
+      }
+    }
+    if (m_unique_types.size() != k_number_of_tuples) {
+      ERROR << "bad file format : " << line << std::endl;
+      return;
     }
   }
 
@@ -114,19 +75,21 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
 
 void
 ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
-  std::map<std::string, ChannelTuple> tuples;
-  for (const auto& t : m_unique_types) {
+  std::vector<ChannelTuple> tuples;
+  for (const auto& type : m_unique_types) {
     ChannelTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
-      if (m_element_type[i] != t) continue;
+      if (m_element_type[i] != type) continue;
       tuple.push_back(parse_element(tokens[i]));
       tuple.set_title(m_header[i]);
     }
-    tuples[t] = tuple;
+    tuples.push_back(tuple);
     DEBUG << tuple << std::endl;
   }
-  m_fe2det_map[tuples["fe"]] = tuples["detector"];
-  m_det2fe_map[tuples["detector"]] = tuples["fe"];
+  const auto& a = tuples[k_a];
+  const auto& b = tuples[k_b];
+  m_a2b_map[a] = b;
+  m_b2a_map[b] = a;
 }
 
 std::vector<std::string>

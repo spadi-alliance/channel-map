@@ -25,7 +25,7 @@ public:
 
 protected:
   template<typename Head, typename... Tail>
-    void set_element(Head&& head, Tail&&... tail) {
+  void set_element(Head&& head, Tail&&... tail) {
     this->emplace_back(head);
     this->set_element(std::forward<Tail>(tail)...);
   }
