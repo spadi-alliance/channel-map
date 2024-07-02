@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace cmap {
+namespace chmap {
 std::ofstream devnull("/dev/null");
 }
 
@@ -13,7 +13,7 @@ std::ofstream devnull("/dev/null");
 #define DEBUG std::cout << "DEBUG   " << __PRETTY_FUNCTION__ \
   << " L" << __LINE__ << "\n      "
 #else
-#define DEBUG cmap::devnull
+#define DEBUG chmap::devnull
 #endif
 
 #define INFO std::cout << "\033[0;34m" << "INFO    " << "\033[0m"

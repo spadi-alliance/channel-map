@@ -11,7 +11,7 @@
 #include "channel_tuple.hpp"
 #include "debug_print.hpp"
 
-namespace cmap {
+namespace chmap {
 
 class ChannelMap {
 public:

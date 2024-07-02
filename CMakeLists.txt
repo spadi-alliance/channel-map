@@ -18,7 +18,7 @@ target_include_directories(channel-map PUBLIC include)
 target_include_directories(channel-map PRIVATE)
 
 ### script
-set(SCRIPT_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/script/channel-map-config)
+set(SCRIPT_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/script/chmap-config)
 
 ### debug
 # add_definitions(-DDEBUG)

@@ -5,7 +5,7 @@
 
 #include "debug_print.hpp"
 
-namespace cmap {
+namespace chmap {
 
 class Stopwatch {
 public:

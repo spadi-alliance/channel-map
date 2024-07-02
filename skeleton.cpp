@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 
   std::string input_csv(argv[kInputCSV]);
 
-  auto& channel_map = cmap::ChannelMap::get_instance();
+  auto& channel_map = chmap::ChannelMap::get_instance();
   channel_map.initialize(input_csv);
 
   /*
@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   */
   if (input_csv == "test.csv") {
     {
-      cmap::ChannelTuple det(170, 30, 0, 262, 0);
+      chmap::ChannelTuple det(170, 30, 0, 262, 0);
       const auto& fe = channel_map.get("fe", det);
       std::cout << "det = " << det << std::endl
                 << "-> fe = " << fe << std::endl;
@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
         otherwise it throws a std::bad_variant_access exception.
       */
       std::cout << std::string(80, '=') << std::endl
-                << "fe[0] : " << std::get<cmap::number_t>(fe.at(0))
-                << " fe[1] : " << std::get<cmap::number_t>(fe.at(1))
+                << "fe[0] : " << std::get<chmap::number_t>(fe.at(0))
+                << " fe[1] : " << std::get<chmap::number_t>(fe.at(1))
                 << " fe[2] : " << std::get<std::string>(fe.at(2))
                 << std::endl;
 
@@ -58,12 +58,12 @@ int main(int argc, char* argv[]) {
         type T matches the current type of std::variant, nullptr otherwise.
       */
       std::cout << std::string(80, '=') << std::endl
-                << "fe[0] : " << *std::get_if<cmap::number_t>(&fe.at(0))
-                << " fe[1] : " << *std::get_if<cmap::number_t>(&fe.at(1))
+                << "fe[0] : " << *std::get_if<chmap::number_t>(&fe.at(0))
+                << " fe[1] : " << *std::get_if<chmap::number_t>(&fe.at(1))
                 << " fe[2] : " << *std::get_if<std::string>(&fe.at(2))
                 << std::endl;
 
-      if (auto value = std::get_if<cmap::number_t>(&fe.at(2))) {
+      if (auto value = std::get_if<chmap::number_t>(&fe.at(2))) {
         std::cout << "The value is number : " << *value << std::endl;
       } else if (auto value = std::get_if<std::string>(&fe.at(2))) {
         std::cout << "The value is string : " << *value << std::endl;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
       If the key is missing, a null tuple is returned.
      */
     {
-      cmap::ChannelTuple det(0, 1, 2, 3);
+      chmap::ChannelTuple det(0, 1, 2, 3);
       const auto& fe = channel_map.get("fe", det);
       std::cout << "fe = " << fe << std::endl;
     }

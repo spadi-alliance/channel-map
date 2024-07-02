@@ -10,7 +10,7 @@
 #include <string>
 #include <string_view>
 
-namespace cmap {
+namespace chmap {
 
 using number_t = uint64_t;
 using element_t = std::variant<number_t, std::string>;
@@ -47,7 +47,7 @@ inline element_t parse_element(const std::string& str) {
 }
 
 inline std::ostream&
-operator <<(std::ostream& ost, const cmap::element_t& var) {
+operator <<(std::ostream& ost, const chmap::element_t& var) {
   std::visit([&ost](const auto& value) {
     ost << value;
   }, var);

@@ -10,7 +10,7 @@
 #include "channel_tuple.hpp"
 #include "stopwatch.hpp"
 
-namespace cmap {
+namespace chmap {
 
 ChannelMap::ChannelMap()
   : m_header(),
