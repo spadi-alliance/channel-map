@@ -52,4 +52,4 @@ your_function()
 }
 ```
 
-See also skeleton.cpp for implementation details.
+See also `skeleton.cpp` for implementation details.
