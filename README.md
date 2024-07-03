@@ -35,7 +35,6 @@ CFLAGS			+= $(shell $(chmap_config) --include)
 LDFLAGS			+= $(shell $(chmap_config) --libs)
 ```
 
-See skeleton.cpp for implementation.
 In your code,
 
 ```cpp
@@ -52,3 +51,5 @@ your_function()
   ...
 }
 ```
+
+See also skeleton.cpp for implementation details.
