@@ -10,6 +10,7 @@
 
 #include "channel_tuple.hpp"
 #include "debug_print.hpp"
+#include "element.hpp"
 
 namespace chmap {
 

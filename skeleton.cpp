@@ -2,8 +2,6 @@
 #include <iostream>
 
 #include <channel_map.hpp>
-#include <channel_tuple.hpp>
-#include <stopwatch.hpp>
 
 enum EArgs {
   kProcess, kInputCSV, kNArgs
@@ -40,13 +38,12 @@ int main(int argc, char* argv[]) {
         matches the current type of std::variant,
         otherwise it throws a std::bad_variant_access exception.
       */
-      std::cout << std::string(80, '=') << std::endl
-                << "fe[0] : " << std::get<chmap::number_t>(fe.at(0))
-                << " fe[1] : " << std::get<chmap::number_t>(fe.at(1))
-                << " fe[2] : " << std::get<std::string>(fe.at(2))
-                << std::endl;
-
       try {
+        std::cout << std::string(80, '=') << std::endl
+                  << "fe[0] : " << std::get<chmap::number_t>(fe.at(0))
+                  << " fe[1] : " << std::get<chmap::number_t>(fe.at(1))
+                  << " fe[2] : " << std::get<std::string>(fe.at(2))
+                  << std::endl;
         auto value = std::get<std::string>(fe.at(0));
         std::cout << "fe[0] : " << value << std::endl;
       } catch (const std::bad_variant_access& e) {
