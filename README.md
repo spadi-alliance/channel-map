@@ -44,11 +44,17 @@ your_function()
 {
   auto& channel_map = chmap::ChannelMap::get_instance();
   channel_map.initialize("foo.csv");
-  chmap::ChannelTuple detector(1, 2, 3, 4, 5);
-  const auto& fe = channel_map.get("fe", detector);
-  auto fe_id = std::get<chmap::number_t>(fe[0]);
-  auto fe_ch = std::get<chmap::number_t>(fe[1]);
-  ...
+  {
+    chmap::ChannelTuple detector(1, 2, 3, 4, 5);
+    const auto& fe = channel_map.get("fe", detector);
+    auto fe_id = std::get<chmap::number_t>(fe[0]);
+    auto fe_ch = std::get<chmap::number_t>(fe[1]);
+	...
+  }
+  {
+    const auto& fe = channel_map.get("fe", {0, "a", 3, "x"});
+    ...
+  }
 }
 ```
 

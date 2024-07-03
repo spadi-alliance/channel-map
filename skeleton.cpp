@@ -77,6 +77,11 @@ int main(int argc, char* argv[]) {
       const auto& fe = channel_map.get("fe", det);
       std::cout << "fe = " << fe << std::endl;
     }
+
+    {
+      const auto& fe = channel_map.get("fe", {0, "1", 2, "3"});
+      std::cout << "fe = " << fe << std::endl;
+    }
   }
 
   return EXIT_SUCCESS;
