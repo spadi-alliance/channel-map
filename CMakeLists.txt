@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(channel-map VERSION 1.0)
+project(ChannelMap)
+
+execute_process(
+  COMMAND sh script/chmap-config --version
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE PROJECT_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,15 +30,37 @@ set(SCRIPT_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/script/chmap-config)
 ### debug
 # add_definitions(-DDEBUG)
 
+### config
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ChannelMapConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+configure_file(ChannelMapConfig.cmake.in ChannelMapConfig.cmake @ONLY)
+
 ### skeleton
 add_executable(skeleton-program skeleton.cpp)
 target_compile_features(skeleton-program PRIVATE cxx_std_17)
 target_link_libraries(skeleton-program PRIVATE channel-map stdc++fs)
 
 ### install
+install(DIRECTORY include/ DESTINATION include)
 install(TARGETS skeleton-program DESTINATION bin)
-install(TARGETS channel-map DESTINATION lib)
+install(TARGETS channel-map EXPORT ChannelMapTargets DESTINATION lib)
 install(FILES ${HEADERS} DESTINATION include)
 install(FILES ${SCRIPT_SOURCE} DESTINATION bin
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
 	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/ChannelMapConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ChannelMapConfigVersion.cmake"
+    DESTINATION lib/cmake/ChannelMap
+)
+
+install(EXPORT ChannelMapTargets
+    FILE ChannelMapTargets.cmake
+    NAMESPACE ChannelMap::
+    DESTINATION lib/cmake/ChannelMap
+)
