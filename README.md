@@ -2,6 +2,8 @@
 
 Channel mapping library between Detector and Readout FEE
 
+Development and test environment: KEKCC Intel Xeon Gold 6230 20C40Tx2 @2.10 GHz, CentOS Linux 7.9.2009, gcc/g++ 8.3.0 (c++17 required)
+
 ## Install
 
 Build channel-map.
