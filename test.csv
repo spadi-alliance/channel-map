@@ -1,4 +1,4 @@
-fe.node,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.data
+fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.data
 30,262,adc,170,30,0,262,0
 30,263,0,170,30,0,263,0
 30,264,0,170,30,0,264,0

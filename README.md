@@ -47,7 +47,7 @@ Prefixes such as `0xff`, `0b101`, `077`, etc. are interpreted as hexadecimal, bi
 If they cannot be interpreted as numbers, they are assumed to be strings.
 
 ```test.csv
-fe.node,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.data
+fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.data
 30,262,adc,170,30,0,262,0
 30,263,0,170,30,0,263,0
 30,264,0,170,30,0,264,0
@@ -85,8 +85,8 @@ your_function()
     chmap::ChannelTuple detector(1, 2, 3, 4, 5);
     const auto& fe = channel_map.get("fe", detector);
     try {
-      auto fe_id = std::get<chmap::number_t>(fe[0]);
-      auto fe_ch = std::get<chmap::number_t>(fe[1]);
+      auto fe_id = std::get<chmap::number_t>(fe["id"]);
+      auto fe_ch = std::get<chmap::number_t>(fe["channel"]);
     } catch (const std::bad_variant_access& e) {
       std::cerr << "Bad variand access : " << e << std::endl;
     }

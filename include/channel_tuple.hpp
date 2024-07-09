@@ -13,15 +13,32 @@ public:
   template<typename... Args> ChannelTuple(Args... args) {
     this->set_element(args...);
   }
-  void set_title(const std::string& t) { m_types.push_back(t); }
+  void set_title(std::size_t i, const std::string& t) {
+    m_title_t2i[t] = i;
+    m_title_i2t[i] = t;
+  }
   const std::string& title(std::size_t i) const {
-    if (i < m_types.size()) {
-      return m_types[i];
+    if (m_title_i2t.find(i) != m_title_i2t.end()) {
+      return m_title_i2t.at(i);
     } else {
       static std::string null_str;
       return null_str;
     }
   }
+  element_t& operator [](const std::string& key) {
+    return std::vector<element_t>::operator [](m_title_t2i.at(key));
+  }
+  const element_t& operator [](const std::string& key) const {
+    return std::vector<element_t>::operator [](m_title_t2i.at(key));
+  }
+  element_t& at(const std::string& t) {
+    return std::vector<element_t>::at(m_title_t2i.at(t));
+  }
+  const element_t& at(const std::string& t) const {
+    return std::vector<element_t>::at(m_title_t2i.at(t));
+  }
+  using std::vector<element_t>::operator [];
+  using std::vector<element_t>::at;
 
 protected:
   template<typename Head, typename... Tail>
@@ -31,7 +48,8 @@ protected:
   }
   void set_element() {}
 
-  std::vector<std::string> m_types;
+  std::unordered_map<std::string, std::size_t> m_title_t2i;
+  std::unordered_map<std::size_t, std::string> m_title_i2t;
 };
 
 }

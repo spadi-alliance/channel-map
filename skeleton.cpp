@@ -40,9 +40,12 @@ int main(int argc, char* argv[]) {
       */
       try {
         std::cout << std::string(80, '=') << std::endl
-                  << "fe[0] : " << std::get<chmap::number_t>(fe.at(0))
-                  << " fe[1] : " << std::get<chmap::number_t>(fe.at(1))
-                  << " fe[2] : " << std::get<std::string>(fe.at(2))
+                  << "fe[0] : " << std::get<chmap::number_t>(fe[0])
+                  << " fe[id] : " << std::get<chmap::number_t>(fe["id"])
+                  << " fe[1] : " << std::get<chmap::number_t>(fe[1])
+                  << " fe[channel] : " << std::get<chmap::number_t>(fe["channel"])
+                  << " fe[2] : " << std::get<std::string>(fe[2])
+                  << " fe[data] : " << std::get<std::string>(fe["data"])
                   << std::endl;
         auto value = std::get<std::string>(fe.at(0));
         std::cout << "fe[0] : " << value << std::endl;

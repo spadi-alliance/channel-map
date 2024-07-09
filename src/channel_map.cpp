@@ -81,7 +81,7 @@ ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_element_type[i] != type) continue;
       tuple.push_back(parse_element(tokens[i]));
-      tuple.set_title(m_header[i]);
+      tuple.set_title(i, split_line(m_header[i], '.')[1]);
     }
     tuples.push_back(tuple);
     DEBUG << tuple << std::endl;
