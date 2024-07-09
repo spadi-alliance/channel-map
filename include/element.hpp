@@ -12,7 +12,7 @@
 
 namespace chmap {
 
-using number_t = uint64_t;
+using number_t = int64_t;
 using element_t = std::variant<number_t, std::string>;
 
 inline element_t parse_element(const std::string& str) {
