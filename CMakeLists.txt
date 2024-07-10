@@ -11,6 +11,11 @@ execute_process(
 
 message(STATUS "${PROJECT_NAME}: version ${PROJECT_VERSION}")
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
@@ -26,11 +31,26 @@ add_library(channel-map SHARED ${SOURCES})
 target_include_directories(channel-map PUBLIC include)
 target_include_directories(channel-map PRIVATE)
 
+### filesystem
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(FILESYSTEM_LIB stdc++fs)
+endif()
+
 ### script
 set(SCRIPT_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/script/chmap-config)
 
 ### debug
-# add_definitions(-DDEBUG)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG)
+    ### root for debug
+    list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+    find_package(ROOT)
+    ### measure search time
+    add_executable(search-time debug/search-time.cpp)
+    target_compile_features(search-time PRIVATE cxx_std_17)
+    target_link_libraries(search-time PRIVATE channel-map ${FILESYSTEM_LIB} ROOT::Core)
+    install(TARGETS search-time DESTINATION bin)
+endif()
 
 ### config
 include(CMakePackageConfigHelpers)
