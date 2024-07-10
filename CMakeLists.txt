@@ -64,7 +64,7 @@ configure_file(ChannelMapConfig.cmake.in ChannelMapConfig.cmake @ONLY)
 ### skeleton
 add_executable(skeleton-program skeleton.cpp)
 target_compile_features(skeleton-program PRIVATE cxx_std_17)
-target_link_libraries(skeleton-program PRIVATE channel-map stdc++fs)
+target_link_libraries(skeleton-program PRIVATE channel-map ${FILESYSTEM_LIB})
 
 ### install
 install(DIRECTORY include/ DESTINATION include)
