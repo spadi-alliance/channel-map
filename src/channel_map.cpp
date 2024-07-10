@@ -26,7 +26,7 @@ ChannelMap::initialize(const std::filesystem::path& file_path) {
   if (file_path.extension() == ".csv") {
     initialize_from_csv(file_path.string());
   } else {
-    ERROR << "anything other than 'csv' is currently unsupported" << std::endl;
+    error << "anything other than 'csv' is currently unsupported" << std::endl;
   }
 }
 
@@ -36,7 +36,7 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
 
   std::ifstream file(file_path);
   if (!file.is_open()) {
-    std::cerr << "ERROR file open fail : " << file_path << std::endl;
+    error << "file open fail : " << file_path << std::endl;
     std::exit(1);
   }
 
@@ -45,7 +45,7 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
     int i = 0;
     for (const auto& h : split_line(line)){
       if (std::count(m_header.begin(), m_header.end(), h) > 0) {
-        ERROR << "found duplicate header : " << h << std::endl;
+        error << "found duplicate header : " << h << std::endl;
       }
       m_header.push_back(h);
       auto type = split_line(h, '.')[0];
@@ -56,7 +56,7 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
       }
     }
     if (m_unique_types.size() != k_number_of_tuples) {
-      ERROR << "bad file format : " << line << std::endl;
+      error << "bad file format : " << line << std::endl;
       return;
     }
   }
@@ -64,7 +64,7 @@ ChannelMap::initialize_from_csv(const std::string& file_path) {
   while (std::getline(file, line)) {
     auto tokens = split_line(line);
     if (tokens.size() != m_header.size()) {
-      ERROR << "column size = " << tokens.size()
+      error << "column size = " << tokens.size()
             << " does not match header size = " << m_header.size()
             << ", skip this line : " << line << std::endl;
       continue;
@@ -80,11 +80,11 @@ ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
     ChannelTuple tuple;
     for (int i=0, n=tokens.size(); i<n; ++i) {
       if (m_element_type[i] != type) continue;
+      tuple.set_title(tuple.size(), split_line(m_header[i], '.')[1]);
       tuple.push_back(parse_element(tokens[i]));
-      tuple.set_title(i, split_line(m_header[i], '.')[1]);
     }
     tuples.push_back(tuple);
-    DEBUG << tuple << std::endl;
+    debug << tuple << std::endl;
   }
   const auto& a = tuples[k_a];
   const auto& b = tuples[k_b];

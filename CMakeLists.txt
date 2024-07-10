@@ -48,7 +48,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     ### measure search time
     add_executable(search-time debug/search-time.cpp)
     target_compile_features(search-time PRIVATE cxx_std_17)
-    target_link_libraries(search-time PRIVATE channel-map ${FILESYSTEM_LIB} ROOT::Core)
+    target_link_libraries(search-time PRIVATE channel-map ${FILESYSTEM_LIB}
+    				      ROOT::Core ROOT::Hist)
     install(TARGETS search-time DESTINATION bin)
 endif()
 

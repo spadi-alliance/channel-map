@@ -11,6 +11,7 @@
 #include "channel_tuple.hpp"
 #include "debug_print.hpp"
 #include "element.hpp"
+#include "stopwatch.hpp"
 
 namespace chmap {
 
@@ -30,6 +31,19 @@ public:
       return a2b(tuple);
     }
     else return k_null_tuple;
+  }
+  const std::unordered_map<ChannelTuple, ChannelTuple>
+  get(const std::string& target) const {
+    if (m_unique_types[k_a] == target) {
+      return m_b2a_map;
+    }
+    else if (m_unique_types[k_b] == target) {
+      return m_a2b_map;
+    }
+    else {
+      static std::unordered_map<ChannelTuple, ChannelTuple> null_map;
+      return null_map;
+    }
   }
   // const ChannelTuple& get(int index, const ChannelTuple& tuple) const {
   //   if (index == k_a) {
@@ -51,7 +65,7 @@ private:
     if (itr != m_a2b_map.end()) {
       return itr->second;
     } else {
-      WARNING << "key not found : " << a << std::endl;
+      warning << "key not found : " << a << std::endl;
       return k_null_tuple;
     }
   }
@@ -60,7 +74,7 @@ private:
     if (itr != m_b2a_map.end()) {
       return itr->second;
     } else {
-      WARNING << "key not found : " << b << std::endl;
+      warning << "key not found : " << b << std::endl;
       return k_null_tuple;
     }
   }

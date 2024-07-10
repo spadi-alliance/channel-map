@@ -40,8 +40,8 @@ public:
   double elapsed() const {
     auto duration = (m_running ? clock::now() : m_stop_time) - m_start_time;
     auto elapsed = std::chrono::duration_cast<Duration>(duration).count();
-    DEBUG << elapsed // << " / " << Duration::period::den
-          << std::endl;
+    // debug << elapsed // << " / " << Duration::period::den
+    //       << std::endl;
     return elapsed;
   }
 
