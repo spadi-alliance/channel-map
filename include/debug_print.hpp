@@ -37,9 +37,11 @@ private:
 class LogStream : public std::ostream {
 public:
   LogStream(LogLevel level)
-    : std::ostream(m_buffer.get()),
+    : std::ostream(nullptr),
       m_buffer(std::make_unique<LogBuffer>(level))
-  {}
+  {
+    this->rdbuf(m_buffer.get());
+  }
 
 private:
   std::unique_ptr<LogBuffer> m_buffer;

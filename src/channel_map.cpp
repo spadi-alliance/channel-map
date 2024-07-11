@@ -84,7 +84,7 @@ ChannelMap::make_tuple(const std::vector<std::string>& tokens) {
       tuple.push_back(parse_element(tokens[i]));
     }
     tuples.push_back(tuple);
-    debug << tuple << std::endl;
+    debug << m_a2b_map.size() << "\t" << tuple << std::endl;
   }
   const auto& a = tuples[k_a];
   const auto& b = tuples[k_b];
