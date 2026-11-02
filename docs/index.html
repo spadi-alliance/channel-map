@@ -52,12 +52,12 @@ cmake --build build --parallel
 </ul></section><section id="csv">
 <h2>03　対応表CSVを用意する</h2>
 <h3 id="csv-columns">9列のヘッダとデータ例</h3><p>対応表には以下の9列をこの順序で用意します。</p><pre><code>fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.readout,detector.data
-0xc0a802a9,8,0,utof,0,0,0,left,0
-0xc0a802a9,10,0,utof,0,0,0,right,0</code></pre><table><thead><tr><th>列</th><th>内容・制約</th></tr></thead><tbody>
+0xc0a802a9,8,0,t0,0,0,0,left,0
+0xc0a802a9,10,0,t0,0,0,0,right,0</code></pre><table><thead><tr><th>列</th><th>内容・制約</th></tr></thead><tbody>
 <tr><td>fe.id</td><td>整数で記したIP。例は192.168.2.169。検索では下位16bit（2, 169）のみを使います。</td></tr>
 <tr><td>fe.channel</td><td>FEEチャンネル番号。uint8_t、0〜255。</td></tr>
 <tr><td>fe.data</td><td>予約列。対応付けでは未使用。</td></tr>
-<tr><td>detector.id</td><td>検出器名。文字列として辞書に登録（例：utof）。</td></tr>
+<tr><td>detector.id</td><td>検出器名。文字列として辞書に登録（例：t0）。</td></tr>
 <tr><td>detector.plane</td><td>面名。文字列として辞書に登録（例：0）。</td></tr>
 <tr><td>detector.segment</td><td>セグメント番号。uint8_t、0〜255。</td></tr>
 <tr><td>detector.channel</td><td>検出器チャンネル番号。uint16_t、0〜65535。</td></tr>
@@ -74,7 +74,7 @@ cmake --build build --parallel
 <li><code>(ip3rd, ip4th, ch) = (0, 0, 0)</code>は未登録スロットを表します。</li>
 <li>この組み合わせを含むCSVは、読み込み時に<code>std::runtime_error</code>で拒否されます。</li>
 <li>CH0など、個々のフィールドが0であることは問題ありません。</li>
-</ul></aside><h3 id="csv-existing">付属の対応表</h3><p>リポジトリに含まれる<code>mapdata_T103_20260404.csv</code>を、9列形式の対応表の例として参照できます。実際の処理には、使用する装置の接続に合った対応表を用意してください。</p>
+</ul></aside><h3 id="csv-existing">付属の対応表</h3><p><code>examples/test.csv</code>は、9列形式の使い方を示す40行のサンプルです。検出器名はタイミングカウンタを<code>t0</code>・<code>t1</code>・<code>t2</code>、ドリフトチェンバーを<code>dc1</code>・<code>dc2</code>と抽象化しています。カウンタの両端は<code>left</code>／<code>right</code>、DCのワイヤは面名・セグメント・チャンネル番号で区別します。FEEアドレスも説明用の例です。実際の処理には、使用する装置の接続に合った対応表を用意してください。</p>
 </section><section id="usage">
 <h2>04　基本の使い方：正引きと逆引き</h2>
 <h3 id="usage-setup">初期化と検索の前提</h3><p>上のCSVを<code>example.csv</code>として保存し、次のコードを<code>main.cpp</code>に置きます。検索には、存在確認と取得をまとめた<code>findDET()</code>／<code>findFE()</code>を使います。</p><ul>
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
               &lt;&lt; det-&gt;getReadoutChannelName() &lt;&lt; &#x27;\n&#x27;;
 
     // DET -&gt; FE：名前、面、segment、読み出し名、番号の順
-    const auto* fe = map.findFE(&quot;utof&quot;, &quot;0&quot;, 0, &quot;left&quot;, 0);
+    const auto* fe = map.findFE(&quot;t0&quot;, &quot;0&quot;, 0, &quot;left&quot;, 0);
     if (!fe) return 3;
     std::cout &lt;&lt; std::dec &lt;&lt; static_cast&lt;unsigned&gt;(fe-&gt;ip3rd) &lt;&lt; &#x27;.&#x27;
               &lt;&lt; static_cast&lt;unsigned&gt;(fe-&gt;ip4th) &lt;&lt; &#x27;:&#x27;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Itemを渡すオーバーロードも利用できる
     if (map.findFE(*det) != fe || map.findDET(*fe) != det) return 4;
-}</code></pre><p>このCSVなら正引き結果は<code>utof 0 0 0 left</code>、逆引き結果は<code>2.169:8</code>です。</p><h3 id="usage-results">戻り値と診断出力</h3><ul>
+}</code></pre><p>このCSVなら正引き結果は<code>t0 0 0 0 left</code>、逆引き結果は<code>2.169:8</code>です。</p><h3 id="usage-results">戻り値と診断出力</h3><ul>
 <li><code>initialize()</code>の戻り値はFE側の配列充填率で、成功／失敗を表すboolではありません。</li>
 <li>初期化時にはライブラリ自身の診断ログを出力します。</li>
 <li>重複項目や1 GBを超える配列見積もりの警告は、標準エラー出力へ出ます。</li>
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 <li>上限を超えると、辞書構築時に<code>std::runtime_error</code>が発生します。</li>
 <li>予約ID 0の<code>detname_dictionary.IndexToString()</code>はfalseを返します。</li>
 </ul><h3 id="dictionary-lookup">名前とインデックスを相互に参照する</h3><pre><code>uint8_t name_index;
-if (map.detname_dictionary.StringToIndex(&quot;utof&quot;, name_index)) {
+if (map.detname_dictionary.StringToIndex(&quot;t0&quot;, name_index)) {
     std::string original;
     map.detname_dictionary.IndexToString(name_index, original);
 }</code></pre><ul>
@@ -244,8 +244,8 @@ std::cout &lt;&lt; tdc_view-&gt;GetScale() &lt;&lt; &#x27; &#x27;
 <tr><td>chmap/calibration.hpp</td><td>TDC較正とドリフト長較正の定義</td></tr>
 </tbody></table>
 <h3 id="files-example">サンプルプログラム</h3>
-<p><a href="https://github.com/SATSUKIUM/channel-map/blob/main/dope_skeleton.cpp">dope_skeleton.cpp</a>に、正引き・逆引きと幾何情報登録の例があります。ビルド後は、リポジトリのルートから以下のように実行できます。</p>
-<pre><code>./.build/dope-skeleton-program mapdata_T103_20260404.csv</code></pre>
+<p><a href="https://github.com/SATSUKIUM/channel-map/blob/main/examples/dope_skeleton.cpp">dope_skeleton.cpp</a>に、正引き・逆引きと幾何情報登録の例があります。ビルド後は、リポジトリのルートから以下のように実行できます。</p>
+<pre><code>./.build/dope-skeleton-program examples/test.csv</code></pre>
 <p>引数には9列形式のCSVを指定します。サンプル内の検索対象を変更する場合は、対応するFEEアドレスがCSVに登録されていることを確認してください。</p>
 <h3 id="files-links">関連リンク</h3>
 <ul>

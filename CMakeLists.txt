@@ -42,7 +42,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(channel-map PRIVATE DEBUG)
 endif()
 
-add_executable(dope-skeleton-program dope_skeleton.cpp)
+add_executable(dope-skeleton-program examples/dope_skeleton.cpp)
 target_link_libraries(dope-skeleton-program PRIVATE channel-map)
 
 # Generate the package configuration here; no source template is required.

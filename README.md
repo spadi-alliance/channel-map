@@ -6,7 +6,7 @@ optionally supports inverse lookup. Detector geometry and calibration objects
 are owned by the map.
 
 See the [Japanese documentation](https://satsukium.github.io/channel-map/) and
-[dope_skeleton.cpp](dope_skeleton.cpp) for complete examples.
+[dope_skeleton.cpp](examples/dope_skeleton.cpp) for complete examples.
 
 ## Design for runtime performance
 
@@ -54,14 +54,46 @@ target_compile_features(YourProject PRIVATE cxx_std_17)
 Configure the consumer with
 `-DCMAKE_PREFIX_PATH="$HOME/.local/channel-map"`.
 
+### Migrating from `chmap-config`
+
+`find_package(ChannelMap REQUIRED)` and the `ChannelMap::ChannelMap` target
+remain supported. The package configuration is now generated directly by
+`CMakeLists.txt` rather than from `ChannelMapConfig.cmake.in`; it is installed
+under `lib/cmake/ChannelMap`.
+
+The `chmap-config` command is no longer provided. If your build previously used
+`chmap-config --include` or `chmap-config --libs`, use the CMake integration
+above instead. `ChannelMap::ChannelMap` supplies the include directories,
+library linkage, and C++17 requirement. For example, a minimal application
+project can use:
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(MyApplication LANGUAGES CXX)
+
+find_package(ChannelMap REQUIRED)
+add_executable(my-application main.cpp)
+target_link_libraries(my-application PRIVATE ChannelMap::ChannelMap)
+```
+
+After installing the library, configure and build the application with:
+
+```sh
+cmake -S . -B .build -DCMAKE_PREFIX_PATH="$HOME/.local/channel-map"
+cmake --build .build --parallel
+```
+
+This replaces the build integration only; source code using the old `ChannelMap`
+API must also be updated to use `ChannelMapDopeness`.
+
 ## CSV format
 
 Use these nine columns in order:
 
 ```csv
 fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.readout,detector.data
-0xc0a802a9,8,0,utof,0,0,0,left,0
-0xc0a802a9,10,0,utof,0,0,0,right,0
+0xc0a802a9,8,0,t0,0,0,0,left,0
+0xc0a802a9,10,0,t0,0,0,0,right,0
 ```
 
 FEE addresses use the lower two IP octets and an 8-bit channel number.
@@ -72,7 +104,17 @@ The segment number is 8-bit and detector channel number is 16-bit.
 Keep the mapping one-to-one. Initialization reports duplicate entries but
 continues loading. The all-zero FEE tuple is reserved for unmapped slots.
 CSV parsing uses simple comma separation; quoted commas are not supported.
-`mapdata_T103_20260404.csv` is the included nine-column map.
+`examples/test.csv` is a small, illustrative nine-column map.
+It uses generic detector names: `t0`, `t1`, and `t2` for timing counters, and
+`dc1` and `dc2` for drift chambers. Counter ends are distinguished by
+`left`/`right`; chamber wires by plane, segment, and channel number.
+The FEE addresses are examples, not an actual detector configuration.
+
+Run the skeleton from the repository root:
+
+```sh
+./.build/dope-skeleton-program examples/test.csv
+```
 
 ## Lookup
 
@@ -81,7 +123,7 @@ CSV parsing uses simple comma separation; quoted commas are not supported.
 
 void example() {
     auto& map = chmap::ChannelMapDopeness::get_instance();
-    map.initialize("mapdata_T103_20260404.csv", true);
+    map.initialize("examples/test.csv", true);
 
     if (const auto* det = map.findDET(2, 169, 8)) {
         const auto* fe = map.findFE(*det);
