@@ -1,111 +1,158 @@
 # channel-map
 
-Channel mapping library between Detector and Readout FEE
+A C++17 channel mapping library for realtime detector readout processing.
+`chmap::ChannelMapDopeness` maps FEE addresses to detector identifiers and
+optionally supports inverse lookup. Detector geometry and calibration objects
+are owned by the map.
 
-Development and test environment: KEKCC Intel Xeon Gold 6230 20C40Tx2 @2.10 GHz, CentOS Linux 7.9.2009, gcc/g++ 8.3.0 (c++17 required)
+See the [Japanese documentation](https://satsukium.github.io/channel-map/) and
+[dope_skeleton.cpp](examples/dope_skeleton.cpp) for complete examples.
 
-## Install
+## Design for runtime performance
 
-Build channel-map.
+Instead of tree traversal with `std::map` or hash/bucket lookup with
+`std::unordered_map`, integer address and identifier fields are converted
+arithmetically into an array index. After range checking, the result is obtained
+with a single indexed access to the mapping array. This design prioritizes
+lookup performance during DAQ processing.
+
+- Build the channel mapping and allocate its lookup arrays during initialization.
+- Insertion, deletion, and addition of channel mappings after initialization are
+  not supported. Use the mapping as a fixed lookup table during RUN.
+- Register geometry and calibration during setup, before RUN, then access them
+  read-only during processing.
+
+String-based reverse lookup also resolves names through dictionaries. For
+per-hit lookup, use integer identifiers or the item-based overloads.
+
+## Build and install
+
+Requirements: a C++17 compiler, CMake 3.10 or later, and a build tool such as
+Make or Ninja. ROOT is not required. Git is only needed if you choose to clone
+the repository; source archives can be built without Git.
+
+From the source directory:
 
 ```sh
-cmake -S . -B .build
+cmake -S . -B .build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX="$HOME/.local/channel-map"
+cmake --build .build --parallel
 cmake --build .build --target install
 ```
 
-Add the following to your project's CMakeLists.txt.
+Use `-DCMAKE_BUILD_TYPE=Debug` for a debug build. The version is read from
+`VERSION`. Both configurations build the library and current skeleton.
 
-```sh
-list(APPEND CMAKE_PREFIX_PATH /path/to/channel-map)
+In the consuming project's `CMakeLists.txt`:
+
+```cmake
 find_package(ChannelMap REQUIRED)
-target_link_libraries(YourProject ChannelMap::ChannelMap)
+target_link_libraries(YourProject PRIVATE ChannelMap::ChannelMap)
+target_compile_features(YourProject PRIVATE cxx_std_17)
 ```
 
-For Makefile, the following.
+Configure the consumer with
+`-DCMAKE_PREFIX_PATH="$HOME/.local/channel-map"`.
 
-```make
-chmap_config	= /path/to/channel-map/bin/chmap-config
-CFLAGS			+= $(shell $(chmap_config) --include)
-LDFLAGS			+= $(shell $(chmap_config) --libs)
+### Migrating from `chmap-config`
+
+`find_package(ChannelMap REQUIRED)` and the `ChannelMap::ChannelMap` target
+remain supported. The package configuration is now generated directly by
+`CMakeLists.txt` rather than from `ChannelMapConfig.cmake.in`; it is installed
+under `lib/cmake/ChannelMap`.
+
+The `chmap-config` command is no longer provided. If your build previously used
+`chmap-config --include` or `chmap-config --libs`, use the CMake integration
+above instead. `ChannelMap::ChannelMap` supplies the include directories,
+library linkage, and C++17 requirement. For example, a minimal application
+project can use:
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(MyApplication LANGUAGES CXX)
+
+find_package(ChannelMap REQUIRED)
+add_executable(my-application main.cpp)
+target_link_libraries(my-application PRIVATE ChannelMap::ChannelMap)
 ```
 
-## Uninstall
+After installing the library, configure and build the application with:
 
 ```sh
-xargs rm < .build/install_manifest.txt
-rm -rf .build
+cmake -S . -B .build -DCMAKE_PREFIX_PATH="$HOME/.local/channel-map"
+cmake --build .build --parallel
 ```
 
-## Parameter format
+This replaces the build integration only; source code using the old `ChannelMap`
+API must also be updated to use `ChannelMapDopeness`.
 
-Only CSV is supported.
-Write the element title of each column in the heading line.
-Titles are classified into *Readout FEE* or *Detector* tuples using the first dot-delimited string.
+## CSV format
 
-Elements can be numbers or strings.
-Prefixes such as `0xff`, `0b101`, `077`, etc. are interpreted as hexadecimal, binary, or octal numbers, respectively.
-If they cannot be interpreted as numbers, they are assumed to be strings.
+Use these nine columns in order:
 
-```test.csv
-fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.data
-30,262,adc,170,30,0,262,0
-30,263,0,170,30,0,263,0
-30,264,0,170,30,0,264,0
-30,265,0,170,30,0,265,0
-30,266,0,170,30,0,266,0
-30,267,0,170,30,0,267,0
-30,268,0,170,30,0,268,0
-30,269,0,170,30,0,269,0xff
-30,270,0,170,30,0,270,A
-30,271,0,170,30,0,271,C
+```csv
+fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.readout,detector.data
+0xc0a802a9,8,0,t0,0,0,0,left,0
+0xc0a802a9,10,0,t0,0,0,0,right,0
 ```
 
-## Usage
+FEE addresses use the lower two IP octets and an 8-bit channel number.
+Detector names, plane names and readout names are indexed through dictionaries.
+The segment number is 8-bit and detector channel number is 16-bit.
+`fe.data` and `detector.data` are reserved and unused.
 
-Initialize the singleton instance of the `ChannelMap` class
-and use the `get` method to get a tuple from *FE* to *Detector* or the other way around.
+Keep the mapping one-to-one. Initialization reports duplicate entries but
+continues loading. The all-zero FEE tuple is reserved for unmapped slots.
+CSV parsing uses simple comma separation; quoted commas are not supported.
+`examples/test.csv` is a small, illustrative nine-column map.
+It uses generic detector names: `t0`, `t1`, and `t2` for timing counters, and
+`dc1` and `dc2` for drift chambers. Counter ends are distinguished by
+`left`/`right`; chamber wires by plane, segment, and channel number.
+The FEE addresses are examples, not an actual detector configuration.
 
-`std::get<T>` returns the value if the specified type T matches the current type of `std::variant`,
-otherwise it throws a `std::bad_variant_access` exception.
+Run the skeleton from the repository root:
 
-`std::get_if<T>` returns a pointer to the value if the specified type T
-matches the current type of `std::variant`, nullptr otherwise.
+```sh
+./.build/dope-skeleton-program examples/test.csv
+```
+
+## Lookup
 
 ```cpp
-#include <channel_map.hpp>
+#include <chmap/channel_map_dopeness.hpp>
 
-void
-your_function()
-{
-  auto& channel_map = chmap::ChannelMap::get_instance();
-  channel_map.initialize("foo.csv");
+void example() {
+    auto& map = chmap::ChannelMapDopeness::get_instance();
+    map.initialize("examples/test.csv", true);
 
-  // std::get<T>
-  {
-    chmap::ChannelTuple detector(1, 2, 3, 4, 5);
-    const auto& fe = channel_map.get("fe", detector);
-    try {
-      auto fe_id = std::get<chmap::number_t>(fe["id"]);
-      auto fe_ch = std::get<chmap::number_t>(fe["channel"]);
-    } catch (const std::bad_variant_access& e) {
-      std::cerr << "Bad variand access : " << e << std::endl;
+    if (const auto* det = map.findDET(2, 169, 8)) {
+        const auto* fe = map.findFE(*det);
+        // Use det and fe after checking for nullptr.
+        (void)fe;
     }
-  }
-
-  // std::get_if<T>
-  {
-    const auto& fe = channel_map.get("fe", {0, "a", 3, "x"});
-    if (auto value_as_pointer = std::get_if<chmap::number_t>(&fe[0])) {
-      std::cout << "The value is number : *value_as_pointer << std::endl;
-    } else if (auto fe_id_as_pointer = std::get_if<std::string>(&fe[0])) {
-      std::cout << "The value is string : *value_as_pointer << std::endl;
-    } else {
-      std::cerr << "The variant does not hold number or string" << std::endl;
-    }
-  }
-    ...
-  }
 }
 ```
 
-See also `skeleton.cpp` for implementation details.
+Initialize once per process. `true` creates the inverse map; it defaults to
+`false`. Call lookups only after successful initialization, and call `findFE`
+only when the inverse map exists. Check `isInitialized()` and `hasInverseMap()`
+once during setup (for example, in `InitTask()`), not per hit. Lookup functions
+intentionally do not repeat readiness checks; they return `nullptr` for unmapped
+inputs. The retained
+`getDopeKey_*` methods only check ranges and do not establish existence.
+
+## Geometry and calibration
+
+Pass ownership with `std::unique_ptr` to `setGeometry`, `setTdcCalibration`, or
+`setDriftCalibration`, using either a `DETIdItem` or `FEAddrItem` as the target.
+DET-based registration requires the inverse map. Read settings through
+`det->getConfiguration()` and its const getters.
+
+Repeated assignments, missing targets and null inputs return `false`.
+Arguments are consumed even on failure. Accepted objects remain alive until
+the map is destroyed; existing settings are never replaced.
+
+## Compatibility
+
+The older `ChannelMap`, `ChannelMapSimple`, and `ChannelMapDirect` APIs are no
+longer shipped. Rebuild consumers against the matching headers and library.

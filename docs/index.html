@@ -1,0 +1,256 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>channel-map | 日本語ドキュメント</title><style>[hidden]{display:none!important}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:#23313f;background:#f4f6f8;font:16px/1.85 system-ui,-apple-system,"Noto Sans JP",sans-serif}header{background:#142f42;color:white;padding:54px max(6vw,24px)}header h1{font-size:42px;margin:0}header p{color:#d1e3eb;margin:8px 0}.layout{max-width:1300px;margin:auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px;padding:36px 24px}nav{position:sticky;top:24px;align-self:start;font-size:14px}nav a{display:block;padding:7px 0;color:#28546c;text-decoration:none}main{min-width:0}section{background:white;padding:32px;margin-bottom:24px;border:1px solid #e0e6eb;border-radius:12px;scroll-margin-top:20px}h2{font-size:24px;line-height:1.5;margin:0 0 20px;color:#153f51}h3{font-size:19px;line-height:1.6;margin:30px 0 12px;color:#28546c;scroll-margin-top:20px}p{margin:14px 0}ul,ol{padding-left:1.6em;margin:14px 0}code{font: .9em/1.65 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}p code,li code,td code{background:#eef3f5;padding:2px 4px;border-radius:3px}pre{background:#122936;color:#e3f2f6;padding:20px;border-radius:8px;overflow:auto;line-height:1.65}pre code{white-space:pre;overflow-wrap:normal}aside{padding:16px 20px;background:#fff6df;border-left:4px solid #dba43e;margin:20px 0}.flow{padding:22px;background:#eaf5f3;border-radius:8px;color:#145e56;font-weight:600}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #dde5e9;text-align:left;padding:12px;vertical-align:top;overflow-wrap:anywhere}th{background:#edf3f5}li{margin-bottom:12px}footer{padding:12px 24px 40px;text-align:center;color:#617681;font-size:13px}@media(max-width:850px){.layout{grid-template-columns:1fr;gap:12px}nav{position:static}nav a{display:inline-block;margin-right:16px}section{padding:22px}header h1{font-size:32px}}@media print{body{background:white;font-size:11px}header{padding:20px}nav{display:none}.layout{display:block;padding:0}section{border:0;padding:12px;break-inside:auto}pre{white-space:pre-wrap}pre code{white-space:pre-wrap}h2{break-after:avoid}}</style></head><body><header><p>C++17 · Detector / Readout FEE</p><h1>channel-map</h1><p>対応表の準備から、検索と検出器設定の登録まで。</p><p>日本語ドキュメント · 2026-10-30</p></header><div style="max-width:1300px;margin:20px auto;padding:0 24px;overflow-wrap:anywhere">基準コミット：<code>d0e88a8f971ad713e6698c90b76efe6697973c27</code><br>このガイドは上記コミットのAPIと動作を説明します。</div><div class="layout"><nav aria-label="目次"><a href="#overview">どんなライブラリか</a><a href="#install">インストールとプロジェクトへの組み込み</a><a href="#csv">対応表CSVを用意する</a><a href="#usage">基本の使い方：正引きと逆引き</a><a href="#dictionary">Itemと辞書</a><a href="#configuration">幾何情報・較正情報を関連付ける</a><a href="#limits">運用上の注意とトラブルシューティング</a><a href="#files" hidden>APIとサンプルの参照先</a></nav><main><section id="overview">
+<h2>01　どんなライブラリか</h2>
+<p>channel-mapは、検出器の識別情報と読み出しフロントエンド（FEE）のアドレスを相互に対応付けるC++17のライブラリです。CSVから対応表を読み込み、DAQや解析コードからチャンネル情報を取得できます。</p><div class="flow">FEE：IP下位2オクテット ＋ CH ⇄ 検出器：名前・面・セグメント・番号・読み出し名</div><h3 id="overview-features">主な機能</h3><ul>
+<li>チャンネルの検索と設定登録には<code>chmap::ChannelMapDopeness</code>を使います。FEE側のIPアドレス下位2オクテットとチャンネル番号から、検出器の識別情報を取得します。</li>
+<li>逆方向の検索は、初期化時に有効化できます。</li>
+<li>検索キーを配列の添字に変換する「dope vector」により、整数での検索を直接アクセスに結び付けます。</li>
+<li>検出器名などの文字列はCSVから辞書を作り、内部では整数インデックスとして保持します。</li>
+<li>検出器ごとの幾何情報や較正情報を関連付けられます。</li>
+</ul><h3 id="overview-design">実行時の検索性能を重視した設計</h3>
+<p><code>std::map</code>のように木構造をたどったり、<code>std::unordered_map</code>のようにハッシュ値からバケットを探索したりする方式ではなく、整数のアドレス・識別子から配列の添字を計算して、対応するItemへ直接アクセスします。</p><ul>
+<li>整数キーによる検索では、範囲チェックと添字の計算を行い、対応表の配列を1回インデックス参照して結果を取得します。</li>
+<li>DAQのRUN中に繰り返す検索の性能を重視した方式です。</li>
+<li>文字列による指定は、人が使う検出器名・面名・読み出し名を、プログラム内部の辞書インデックスへ変換するためのものです。変換後は、整数キーと同じ配列参照で検索します。</li>
+<li>初期化時に名前を一度だけインデックスへ変換し、その結果を再利用すれば、RUN中に追加の辞書変換は発生しません。この使い方では、文字列で名前を指定することは実行時の検索性能にほぼ影響しません。</li>
+<li>文字列版の<code>findFE()</code>を呼ぶたびに、辞書変換は実行されます。ヒットごとの検索には、取得済みの整数インデックスまたはItemを渡すオーバーロードを使ってください。</li>
+</ul><h3 id="overview-fixed-map">初期化時に構築し、RUN中は参照する</h3><ul>
+<li>対応表の構築と検索用配列の確保は、初期化時に行います。</li>
+<li>初期化後の対応表への要素の削除・挿入・追加は想定していません。RUN中は固定された対応表として使用します。</li>
+<li>幾何情報・較正情報の登録も、<code>InitTask()</code>などの初期化処理の間に済ませ、RUN中は読み取り専用で参照します。</li>
+</ul><h3 id="overview-scope">このガイドで扱うこと</h3><ul>
+<li>対応表CSVの作成とライブラリのインストール</li>
+<li>FEEアドレスと検出器識別子の正引き・逆引き</li>
+<li>幾何情報・較正情報の登録と参照</li>
+<li>入力の制約、エラーの扱い、検索時の前提条件</li>
+</ul>
+</section><section id="install">
+<h2>02　インストールとプロジェクトへの組み込み</h2>
+<h3 id="install-requirements">必要な環境</h3><ul>
+<li>C++17対応コンパイラ</li>
+<li>CMake 3.10以上</li>
+<li>CMakeで使うビルドツール（MakeやNinja等）</li>
+</ul><p>ROOTは不要です。Gitはcloneでソースを取得するときだけ使用する任意のツールで、展開済みのソースからのビルドには不要です。バージョンは同梱の<code>VERSION</code>ファイルから取得します。</p><p>以下のインストール手順はLinuxを想定しています。</p><h3 id="install-build">ビルドとインストール</h3><pre><code>git clone https://github.com/SATSUKIUM/channel-map.git
+cd channel-map
+cmake -S . -B .build -DCMAKE_BUILD_TYPE=Release   -DCMAKE_INSTALL_PREFIX=&quot;$HOME/.local/channel-map&quot;
+cmake --build .build --parallel
+cmake --build .build --target install</code></pre><ul>
+<li>ZIP等を展開した場合や既存のチェックアウトでは、展開先へ移動してcmakeの行から実行してください。<code>git clone</code>は不要です。</li>
+<li>NESTDAQ配下へ導入する場合は、インストール先に<code>"$NESTDAQ"</code>を指定します。</li>
+<li>Release・Debugともに、ROOTなしでライブラリとサンプルプログラムをビルドします。</li>
+<li>ライブラリ、ヘッダ、バージョン情報を含むCMake設定、<code>dope-skeleton-program</code>がインストールされます。</li>
+</ul><h3 id="install-consumer">利用側のプロジェクトに組み込む</h3><p>利用側の<code>CMakeLists.txt</code>に以下を追加します。</p><pre><code>cmake_minimum_required(VERSION 3.10)
+project(ChannelMapExample LANGUAGES CXX)
+find_package(ChannelMap REQUIRED)
+add_executable(channel-map-example main.cpp)
+target_compile_features(channel-map-example PRIVATE cxx_std_17)
+target_link_libraries(channel-map-example PRIVATE ChannelMap::ChannelMap)</code></pre><pre><code>cmake -S . -B build -DCMAKE_PREFIX_PATH=&quot;$HOME/.local/channel-map&quot;
+cmake --build build --parallel
+./build/channel-map-example ./example.csv</code></pre><ul>
+<li>ライブラリをインストールした後、利用側も同じ版のヘッダとライブラリで再ビルドしてください。</li>
+<li><code>CMAKE_PREFIX_PATH</code>には、channel-mapのインストール先を指定します。</li>
+<li>利用側のリンク先には<code>ChannelMap::ChannelMap</code>を指定します。</li>
+</ul></section><section id="csv">
+<h2>03　対応表CSVを用意する</h2>
+<h3 id="csv-columns">9列のヘッダとデータ例</h3><p>対応表には以下の9列をこの順序で用意します。</p><pre><code>fe.id,fe.channel,fe.data,detector.id,detector.plane,detector.segment,detector.channel,detector.readout,detector.data
+0xc0a802a9,8,0,t0,0,0,0,left,0
+0xc0a802a9,10,0,t0,0,0,0,right,0</code></pre><table><thead><tr><th>列</th><th>内容・制約</th></tr></thead><tbody>
+<tr><td>fe.id</td><td>整数で記したIP。例は192.168.2.169。検索では下位16bit（2, 169）のみを使います。</td></tr>
+<tr><td>fe.channel</td><td>FEEチャンネル番号。uint8_t、0〜255。</td></tr>
+<tr><td>fe.data</td><td>予約列。対応付けでは未使用。</td></tr>
+<tr><td>detector.id</td><td>検出器名。文字列として辞書に登録（例：t0）。</td></tr>
+<tr><td>detector.plane</td><td>面名。文字列として辞書に登録（例：0）。</td></tr>
+<tr><td>detector.segment</td><td>セグメント番号。uint8_t、0〜255。</td></tr>
+<tr><td>detector.channel</td><td>検出器チャンネル番号。uint16_t、0〜65535。</td></tr>
+<tr><td>detector.readout</td><td>読み出し名。例：left、right。辞書で整数化。</td></tr>
+<tr><td>detector.data</td><td>予約列。対応付けでは未使用。</td></tr></tbody></table><h3 id="csv-format">CSVの記述ルール</h3><ul>
+<li>ヘッダは省略せず、余分な空白を入れないでください。</li>
+<li>予約列も<code>0</code>などで埋め、空セルを避けてください。</li>
+<li>単純なカンマ分割です。引用符によるカンマのエスケープ、空白の除去、コメント行は実装していません。</li>
+<li>空行は読み飛ばします。</li>
+</ul><h3 id="csv-numbers">数値の表記と予約値</h3><ul>
+<li><code>fe.id</code>は基数自動判定で整数に変換します。</li>
+<li>他の数値列は数字だけかを先に判定するため、通常の10進表記（不要な先頭ゼロなし）を推奨します。</li>
+</ul><aside><strong>全ゼロのFEEアドレスは予約値です。</strong><ul>
+<li><code>(ip3rd, ip4th, ch) = (0, 0, 0)</code>は未登録スロットを表します。</li>
+<li>この組み合わせを含むCSVは、読み込み時に<code>std::runtime_error</code>で拒否されます。</li>
+<li>CH0など、個々のフィールドが0であることは問題ありません。</li>
+</ul></aside><h3 id="csv-existing">付属の対応表</h3><p><code>examples/test.csv</code>は、9列形式の使い方を示す40行のサンプルです。検出器名はタイミングカウンタを<code>t0</code>・<code>t1</code>・<code>t2</code>、ドリフトチェンバーを<code>dc1</code>・<code>dc2</code>と抽象化しています。カウンタの両端は<code>left</code>／<code>right</code>、DCのワイヤは面名・セグメント・チャンネル番号で区別します。FEEアドレスも説明用の例です。実際の処理には、使用する装置の接続に合った対応表を用意してください。</p>
+</section><section id="usage">
+<h2>04　基本の使い方：正引きと逆引き</h2>
+<h3 id="usage-setup">初期化と検索の前提</h3><p>上のCSVを<code>example.csv</code>として保存し、次のコードを<code>main.cpp</code>に置きます。検索には、存在確認と取得をまとめた<code>findDET()</code>／<code>findFE()</code>を使います。</p><ul>
+<li>処理開始時に一度だけ初期化します。</li>
+<li><code>initialize()</code>の第2引数に<code>true</code>を指定すると、逆引き用配列も作成します。既定値はfalseです。</li>
+<li><code>isInitialized()</code>と<code>hasInverseMap()</code>による準備完了の確認は、<code>InitTask()</code>などで一度だけ行ってください。</li>
+</ul><aside><strong>RUN中の検索では初期化状態を確認しません。</strong><ul>
+<li>初期化前の検索は、APIの前提条件違反です。</li>
+<li>逆引き配列を作成せずに<code>findFE()</code>を呼ぶことも、前提条件違反です。</li>
+</ul></aside><h3 id="usage-example">正引き・逆引きのコード例</h3><pre><code>#include &lt;chmap/channel_map_dopeness.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;utility&gt;
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; map.csv\n&quot;;
+        return 1;
+    }
+    auto&amp; map = chmap::ChannelMapDopeness::get_instance();
+    const double fill_ratio = map.initialize(argv[1], true);
+    std::cout &lt;&lt; std::dec &lt;&lt; &quot;FE fill ratio: &quot; &lt;&lt; fill_ratio &lt;&lt; &#x27;\n&#x27;;
+
+    // FE -&gt; DET：登録がなければnullptr（配列範囲内の穴も含む）
+    const auto* det = map.findDET(2, 169, 8);
+    if (!det) return 2;
+    std::cout &lt;&lt; det-&gt;getDetectorName() &lt;&lt; &#x27; &#x27;
+              &lt;&lt; det-&gt;getDetectorPlane() &lt;&lt; &#x27; &#x27;
+              &lt;&lt; static_cast&lt;unsigned&gt;(det-&gt;segment) &lt;&lt; &#x27; &#x27;
+              &lt;&lt; det-&gt;channel_number &lt;&lt; &#x27; &#x27;
+              &lt;&lt; det-&gt;getReadoutChannelName() &lt;&lt; &#x27;\n&#x27;;
+
+    // DET -&gt; FE：名前、面、segment、読み出し名、番号の順
+    const auto* fe = map.findFE(&quot;t0&quot;, &quot;0&quot;, 0, &quot;left&quot;, 0);
+    if (!fe) return 3;
+    std::cout &lt;&lt; std::dec &lt;&lt; static_cast&lt;unsigned&gt;(fe-&gt;ip3rd) &lt;&lt; &#x27;.&#x27;
+              &lt;&lt; static_cast&lt;unsigned&gt;(fe-&gt;ip4th) &lt;&lt; &#x27;:&#x27;
+              &lt;&lt; static_cast&lt;unsigned&gt;(fe-&gt;ch) &lt;&lt; &#x27;\n&#x27;;
+
+    // Itemを渡すオーバーロードも利用できる
+    if (map.findFE(*det) != fe || map.findDET(*fe) != det) return 4;
+}</code></pre><p>このCSVなら正引き結果は<code>t0 0 0 0 left</code>、逆引き結果は<code>2.169:8</code>です。</p><h3 id="usage-results">戻り値と診断出力</h3><ul>
+<li><code>initialize()</code>の戻り値はFE側の配列充填率で、成功／失敗を表すboolではありません。</li>
+<li>初期化時にはライブラリ自身の診断ログを出力します。</li>
+<li>重複項目や1 GBを超える配列見積もりの警告は、標準エラー出力へ出ます。</li>
+</ul><table><tr><th>API</th><th>戻り値と未登録時の動作</th></tr><tr><td>findDET(ip3rd, ip4th, ch) / findDET(FEAddrItem)</td><td>const DETIdItem*。初期化成功後に使用。範囲外・範囲内の未登録スロットではnullptr。</td></tr><tr><td>findFE(名前, 面, segment, 読み出し名, 番号)</td><td>const FEAddrItem*。逆引き配列の作成後に使用。未登録・未知の名前・数値範囲外ではnullptr。</td></tr><tr><td>findFE(名前ID, 面ID, segment, 読み出しID, 番号) / findFE(DETIdItem)</td><td>const FEAddrItem*。辞書インデックスを使う逆引き。未登録時はnullptr。</td></tr></table><h3 id="usage-lifetime">取得したItemの参照</h3><ul>
+<li>返されたポインタからItemをそのまま参照でき、getterによる再取得は不要です。</li>
+<li>ポインタは、マップの格納領域が再構築・破棄されるまで有効です。</li>
+<li>並行する初期化・変更はサポートしません。</li>
+</ul><h3 id="usage-keys">キーを直接扱う場合</h3><ul>
+<li><code>getDopeKey_*</code>のtrueは各フィールドが範囲内という意味で、登録済みを保証しません。</li>
+<li><code>getDETIdItem()</code>／<code>getFEAddrItem()</code>は、無検査の添字アクセスです。</li>
+<li>存在確認にはfind系を使ってください。正引きと逆引きのキーは互換ではありません。</li>
+</ul>
+</section><section id="dictionary">
+<h2>05　Itemと辞書</h2>
+<h3 id="dictionary-items">Itemに保持される情報</h3><ul>
+<li><code>FEAddrItem</code>はip3rd、ip4th、chを保持します。</li>
+<li><code>DETIdItem</code>はname、plane、segment、channel_number、readout_channel、および設定への内部参照を保持します。</li>
+<li>設定は<code>getConfiguration()</code>から読み取り専用で参照します。</li>
+<li><code>uint8_t</code>はストリーム出力で文字として扱われます。数として表示するときはキャストしてください。</li>
+</ul><h3 id="dictionary-indices">辞書インデックスの割り当て</h3><p>CSV全体を先に走査し、名前の重複を取り除き、文字列をソートしてインデックスを割り当てます。</p><ul>
+<li>インデックスはCSVの内容に依存します。固定値として保存・ハードコードしないでください。</li>
+<li>検出器名IDの0は未登録用です。有効な名前は1〜255で、最大255種類です。</li>
+<li>面名・読み出し名は0〜255で、それぞれ最大256種類です。</li>
+<li>上限を超えると、辞書構築時に<code>std::runtime_error</code>が発生します。</li>
+<li>予約ID 0の<code>detname_dictionary.IndexToString()</code>はfalseを返します。</li>
+</ul><h3 id="dictionary-lookup">名前とインデックスを相互に参照する</h3><pre><code>uint8_t name_index;
+if (map.detname_dictionary.StringToIndex(&quot;t0&quot;, name_index)) {
+    std::string original;
+    map.detname_dictionary.IndexToString(name_index, original);
+}</code></pre><ul>
+<li>公開辞書は<code>detname_dictionary</code>、<code>plane_dictionary</code>、<code>readout_channel_dictionary</code>です。</li>
+<li>通常は初期化で構築された辞書を参照し、手動の追加・再構築を避けます。</li>
+<li>逆引きには、文字列版・インデックス版・<code>DETIdItem</code>版のオーバーロードがあります。</li>
+</ul>
+</section><section id="configuration">
+<h2>06　幾何情報・較正情報を関連付ける</h2>
+<h3 id="configuration-ownership">所有権と登録API</h3><p>設定情報の所有者はマップです。<code>DETConfItem</code>が幾何情報・TDC較正・ドリフト長較正を所有し、利用側は<code>DETIdItem::getConfiguration()</code>から読み取り専用のconstポインタを借ります。</p><ul>
+<li>対応表CSVから設定値を読み込む処理はありません。利用側で作成・登録します。</li>
+<li><code>setGeometry()</code>、<code>setTdcCalibration()</code>、<code>setDriftCalibration()</code>に、用途に応じたunique_ptrを渡します。</li>
+<li>成功した設定は、呼び出し側の変数がスコープを抜けても、マップの破棄まで生存します。</li>
+<li>未登録の設定を取得するとnullptrが返ります。</li>
+</ul><h3 id="configuration-example">幾何情報・較正情報の登録例</h3><p>基本例でdetの存在を確認した後、main関数内に追加するコードです。</p><pre><code>auto geom = std::make_unique&lt;chmap::GeomItemDC&gt;();
+geom-&gt;SetGlobalPosition(0.0, 0.0, 100.0);
+geom-&gt;SetResolution(0.1, 0.1, 0.1);
+geom-&gt;SetRotationAngles(0.0, 0.0, 0.0);
+geom-&gt;SetWireGeometry(1.0, 5.0, 0.0);
+geom-&gt;CalcWirePosition(det-&gt;channel_number);
+if (!map.setGeometry(*det, std::move(geom))) return 5;
+
+const auto* config = det-&gt;getConfiguration();
+if (config &amp;&amp; config-&gt;getGeometry()) {
+    std::cout &lt;&lt; config-&gt;getGeometry()-&gt;GetGlobalZ() &lt;&lt; &#x27;\n&#x27;;
+}</code></pre><pre><code>auto tdc = std::make_unique&lt;chmap::CalibrationItem_DCTdcCalib&gt;();
+tdc-&gt;SetTdcCalibration(0.0, 1.0);
+if (!map.setTdcCalibration(*det, std::move(tdc))) return 6;
+
+auto drift = std::make_unique&lt;chmap::CalibrationItem_DCDriftLength&gt;();
+drift-&gt;SetApproximation(2, {0.0, 0.05}); // 係数の個数と配列長を合わせる
+if (!map.setDriftCalibration(*det, std::move(drift))) return 7;
+
+const auto* tdc_view = config-&gt;getTdcCalibration();
+const auto* drift_view = config-&gt;getDriftCalibration();
+// 型付きのconstポインタなので、較正の取得にdynamic_castは不要。
+std::cout &lt;&lt; tdc_view-&gt;GetScale() &lt;&lt; &#x27; &#x27;
+          &lt;&lt; drift_view-&gt;GetDriftLength(10.0) &lt;&lt; &#x27;\n&#x27;;</code></pre><h3 id="configuration-target">登録先の指定方法</h3><table><tr><th>登録先</th><th>使い方</th></tr><tr><td>DETIdItem</td><td>setGeometry(*det, std::move(geom))。識別子を逆引きして実際の登録先へ対応付けるため、逆引き配列の初期化が必要です。</td></tr><tr><td>FEAddrItem</td><td>setGeometry(chmap::FEAddrItem{2, 169, 8}, std::move(geom))。逆引きを作成していなくても利用できます。較正の2つのAPIも同様です。</td></tr></table><h3 id="configuration-failure">登録に失敗した場合と参照の寿命</h3><ul>
+<li>未登録チャンネル・空ポインタ・同種設定の再登録ではfalseが返ります。</li>
+<li>unique_ptrは失敗時も引き取られます。失敗した呼び出しに渡した新しいオブジェクトは破棄されます。</li>
+<li>既存の登録済み設定は破棄・置換されません。借りたポインタも維持されます。</li>
+<li>借りたポインタをdeleteしないでください。</li>
+<li>登録前に保存した可変ポインタから、処理中に設定を変更しないでください。</li>
+<li>DETIdItemのコピーは識別子のスナップショットです。登録先には使えますが、登録後の設定はfindDETが返す実体から読み取ってください。</li>
+<li>マップの再初期化や並行変更は未対応です。</li>
+</ul><h3 id="configuration-access">取得する設定の型</h3><ul>
+<li><code>getGeometry()</code>はconst GeomItem*を返します。DC固有の情報が必要な場合は、GeomItemDCへのdynamic_castを使います。</li>
+<li><code>getTdcCalibration()</code>と<code>getDriftCalibration()</code>は、それぞれ具体的な較正型のconstポインタを返します。</li>
+<li>登録済み設定の所有権を外部へ移動したり、外部から置き換えたりはできません。</li>
+</ul><h3 id="configuration-values">設定値の定義と現在の制約</h3><ul>
+<li><code>CalibrationItem_DCDriftLength::SetApproximation(n, coeffs)</code>のnは係数の個数です。少なくともn個の係数が必要です。</li>
+<li>TDC較正は<code>SetTdcCalibration(offset, scale)</code>で設定します。</li>
+<li>幾何情報は位置・分解能がmm、角度がdegです。回転軸や回転順序には未定義の点があります。</li>
+</ul></section><section id="limits">
+<h2>07　運用上の注意とトラブルシューティング</h2>
+<h3 id="limits-memory">配列の大きさとメモリ警告</h3><ul>
+<li>FE側の配列サイズは、各要素の「最大値−最小値＋1」の積です。</li>
+<li>DET側は、名前・面・segment・チャンネル番号・読み出し名の各範囲の積です。疎な対応表や逆引きでは、大きなメモリが必要になります。</li>
+<li>確保前に両配列の合計見積もりが1 GB（1,000,000,000バイト）を超える場合は、標準エラー出力へ警告します。警告だけでは確保を中止しません。</li>
+<li>見積もりには実際のItem型のsizeofを使います。CSV行・辞書・設定・アロケータ等のメモリは含みません。</li>
+<li>DET側の積は64bitで計算します。32bitキーで保持できる配列サイズを超える場合は、<code>std::overflow_error</code>を送出します。</li>
+<li>逆引きが不要ならfalseで初期化してください。</li>
+</ul><h3 id="limits-duplicates">対応表の重複</h3><ul>
+<li>一対一を保証するのは利用者の責任です。同じキーへの代入は既存要素を上書きし、複数の対応を返すAPIではありません。</li>
+<li>初期化時にFEアドレス・DET識別子の重複を検出し、両方の対応情報と読み込み順のレコード番号を標準エラー出力へ表示します。</li>
+<li>表示する番号はCSVの物理行番号ではありません。</li>
+<li>同一内容の重複も表示します。逆引きを無効にしていてもDET重複を確認します。</li>
+<li>重複があっても初期化を続行し、自動修正・集約はしません。どの対応が採用されるかに依存しないでください。</li>
+<li>上位IPが異なっても、下位2オクテットとCHが一致すると衝突します。</li>
+</ul><h3 id="limits-values">数値の範囲と型変換</h3><ul>
+<li>狭い整数型への変換で、値が丸め込まれる箇所があります。</li>
+<li>文字列逆引きのint引数は、segmentの0〜255、チャンネル番号の0〜65535を検査します。</li>
+<li>uint8_t等を受け取るAPIでは、呼び出す前に型変換されます。元の値が範囲内か、呼び出し側で確認してください。</li>
+<li>CSV内の数値が各フィールドの範囲に収まることも、読み込む前に確認してください。</li>
+</ul><h3 id="limits-initialization">初期化と並行アクセス</h3><ul>
+<li>再初期化はサポートしていません。1プロセスにつき一度だけ初期化してください。</li>
+<li>初期化・登録と並行して検索する同期機構は用意していません。</li>
+</ul><h3 id="limits-csv-errors">CSV読み込み時のエラー</h3><ul>
+<li>ファイルを開けない場合などは、<code>std::exit(1)</code>でプロセスが終了します。</li>
+<li>列数が異なる行は、エラー表示後に読み飛ばします。</li>
+<li>数値変換例外も発生し得るので、入力を事前検証してください。</li>
+<li>有効なデータ行がない場合は、<code>std::runtime_error</code>で初期化を中止します。</li>
+</ul><h3 id="limits-linking">アプリケーションのビルドでリンクエラーが出る場合</h3><ul>
+<li>アプリケーションのCMake設定で、<code>CMAKE_PREFIX_PATH</code>にchannel-mapのインストール先を指定してください。</li>
+<li><a href="#install-consumer">プロジェクトへの組み込み手順</a>に沿って、<code>find_package(ChannelMap REQUIRED)</code>とリンク先の<code>ChannelMap::ChannelMap</code>を設定してください。</li>
+<li>channel-mapのインストール先を移動した場合やライブラリを更新した場合は、アプリケーションのCMake設定を再生成し、ビルドし直してください。</li>
+</ul>
+</section><section id="files" hidden>
+<h2>08　APIとサンプルの参照先</h2>
+<h3 id="files-reference">公開ヘッダ</h3>
+<p>利用する機能に応じて、以下のヘッダをインクルードします。</p>
+<table><thead><tr><th>ヘッダ</th><th>主な用途</th></tr></thead><tbody>
+<tr><td>chmap/channel_map_dopeness.hpp</td><td>マップの初期化、検索、設定登録</td></tr>
+<tr><td>chmap/item.hpp</td><td>FEAddrItemとDETIdItemの定義</td></tr>
+<tr><td>chmap/dictionary.hpp</td><td>名前と辞書インデックスの相互参照</td></tr>
+<tr><td>chmap/detector_configurations.hpp</td><td>登録済みの幾何情報・較正情報の参照</td></tr>
+<tr><td>chmap/geometry.hpp</td><td>GeomItem、GeomItemDCの定義</td></tr>
+<tr><td>chmap/calibration.hpp</td><td>TDC較正とドリフト長較正の定義</td></tr>
+</tbody></table>
+<h3 id="files-example">サンプルプログラム</h3>
+<p><a href="https://github.com/SATSUKIUM/channel-map/blob/main/examples/dope_skeleton.cpp">dope_skeleton.cpp</a>に、正引き・逆引きと幾何情報登録の例があります。ビルド後は、リポジトリのルートから以下のように実行できます。</p>
+<pre><code>./.build/dope-skeleton-program examples/test.csv</code></pre>
+<p>引数には9列形式のCSVを指定します。サンプル内の検索対象を変更する場合は、対応するFEEアドレスがCSVに登録されていることを確認してください。</p>
+<h3 id="files-links">関連リンク</h3>
+<ul>
+<li><a href="https://github.com/SATSUKIUM/channel-map">ソースリポジトリ</a></li>
+<li><a href="https://github.com/SATSUKIUM/channel-map/blob/main/README.md">README（英語）</a></li>
+<li><a href="https://github.com/SATSUKIUM/channel-map/tree/main/include/chmap">公開ヘッダ一覧</a></li>
+</ul>
+</section></main></div><footer>channel-map · 日本語ユーザーガイド</footer></body></html>
